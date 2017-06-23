@@ -1,7 +1,5 @@
 #include <Arduino.h>
 
-
-
 #define __DEBUG__
 #define __DEBUG_JSON__
 
@@ -63,17 +61,22 @@ class THiNX {
     EAVManagerParameter *api_key_param;
 
     // THiNX Client
-    String thinx_alias;
-    String thinx_owner;
-    String thinx_api_key;
-
-    String thinx_udid;
+    // Import build-time values from thinx.h
     String thinx_commit_id;
+    String thinx_mqtt_url;
+    String thinx_cloud_url;
     String thinx_firmware_version;
     String thinx_firmware_version_short;
-    String thinx_cloud_url;
-    String thinx_mqtt_url;
+    String app_version;
+
     int thinx_mqtt_port;
+    int thinx_api_port;
+
+    // dynamic variables
+    String thinx_alias;
+    String thinx_owner;
+    String thinx_udid;
+    String thinx_api_key;
 
     // MQTT
 

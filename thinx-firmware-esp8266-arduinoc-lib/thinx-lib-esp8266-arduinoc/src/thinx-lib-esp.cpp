@@ -8,8 +8,7 @@ THiNX::THiNX() {
 
 // Just provide thinx_api_key from Thinx.h as input to following initializer:
 THiNX::THiNX(String __apikey) {
-  thinx_api_key = __apikey;
-  initWithAPIKey(thinx_api_key);
+  THiNX::thinx_api_key = __apikey;
   autoconf_ssid  = "AP-THiNX"; // SSID in AP mode
   autoconf_pwd   = "PASSWORD"; // fallback to default password, however this should be generated uniquely as it is logged to console
   thx_udid[64] = {0};
@@ -24,6 +23,24 @@ THiNX::THiNX(String __apikey) {
 // Designated initializer
 void THiNX::initWithAPIKey(String api_key) {
 
+  // Import build-time values from thinx.h
+  THiNX::thinx_commit_id = String(THINX_COMMIT_ID);
+  thinx_mqtt_url = String(THINX_MQTT_URL);
+  thinx_cloud_url = String(THINX_CLOUD_URL);
+  thinx_firmware_version = String(THINX_FIRMWARE_VERSION);
+  thinx_firmware_version_short = String(THINX_FIRMWARE_VERSION_SHORT);
+  app_version = String(APP_VERSION);
+
+  thinx_mqtt_port = THINX_MQTT_PORT;
+  thinx_api_port = THINX_API_PORT;
+
+  // dynamic variables
+  thinx_alias = String(THINX_ALIAS);
+  thinx_owner = String(THINX_OWNER);
+
+  // debug only, deprecated
+  #define THINX_UDID "f8e88e40-43c8-11e7-9ad3-b7281c2b9610"
+
   if (once == true) {
     once = false;
   } else {
@@ -31,7 +48,7 @@ void THiNX::initWithAPIKey(String api_key) {
   }
 
   if (api_key != "") {
-    thinx_api_key = api_key;
+    THiNX::thinx_api_key = api_key;
     sprintf(thx_api_key, "%s", thinx_api_key.c_str()); // 40 max
   }
 
@@ -196,7 +213,7 @@ void THiNX::thinx_parse(String payload) {
     String udid = registration["udid"];
     if ( udid.length() > 0 ) {
       Serial.println(String("assigning udid: ") + udid);
-      thinx_udid = udid;
+      THiNX::thinx_udid = udid;
     }
 
     delay(1);
@@ -292,7 +309,7 @@ void THiNX::checkin() {
   String fws = thinx_firmware_version_short;
   Serial.println(fws);
 
-  String cid = thinx_commit_id;
+  String cid = String(thinx_commit_id);
   Serial.println(cid);
 
   String oid = thinx_owner;
@@ -412,7 +429,7 @@ void THiNX::saveConfigCallback() {
   Serial.println("Save config callback:");
   strcpy(thx_api_key, api_key_param->getValue());
   if (String(thx_api_key).length() > 0) {
-    thinx_api_key = String(thx_api_key);
+    THiNX::thinx_api_key = String(thx_api_key);
     Serial.print("Saving thinx_api_key: ");
     Serial.println(thinx_api_key);
     //Will be saved on checkin? NO! Will be lost on reset!
@@ -485,27 +502,27 @@ bool THiNX::restoreDeviceInfo() {
 
       const char* saved_alias = config["alias"];
       if (strlen(saved_alias) > 1) {
-        thinx_alias = String(saved_alias);
+        THiNX::thinx_alias = String(saved_alias);
       }
 
       const char* saved_owner = config["owner"];
       if (strlen(saved_owner) > 5) {
-        thinx_owner = String(saved_owner);
+        THiNX::thinx_owner = String(saved_owner);
       }
 
       const char* saved_apikey = config["apikey"];
       if (strlen(saved_apikey) > 8) {
-       thinx_api_key = String(saved_apikey);
+       THiNX::thinx_api_key = String(saved_apikey);
        sprintf(thx_api_key, "%s", saved_apikey); // 40 max
       }
 
       const char* saved_udid = config["udid"];
       Serial.print("*TH: Saved udid: "); Serial.println(saved_udid);
       if ((strlen(saved_udid) == 12) || (strlen(saved_udid) == 40)) { // warning: fix me
-       thinx_udid = String(saved_udid);
+       THiNX::thinx_udid = String(saved_udid);
        sprintf(thx_udid, "%s", saved_udid); // 40 max
      } else {
-       thinx_udid = thinx_mac();
+       THiNX::thinx_udid = thinx_mac();
        sprintf(thx_udid, "%s", saved_udid); // 40 max
      }
      f.close();
@@ -551,19 +568,19 @@ String THiNX::deviceInfo()
 {
   //Serial.println("*TH: building device info:");
   JsonObject& root = jsonBuffer.createObject();
-  root["alias"] = thinx_alias;
+  root["alias"] = THiNX::thinx_alias;
   //Serial.print("*TH: thinx_alias: ");
   //Serial.println(thinx_alias);
 
-  root["owner"] = thinx_owner;
+  root["owner"] = THiNX::thinx_owner;
   //Serial.print("*TH: thinx_owner: ");
   //Serial.println(thinx_owner);
 
-  root["apikey"] = thx_api_key;
+  root["apikey"] = THiNX::thx_api_key;
   //Serial.print("*TH: thx_api_key: ");
   //Serial.println(thx_api_key);
 
-  root["udid"] = thinx_udid;
+  root["udid"] = THiNX::thinx_udid;
   //Serial.print("*TH: thinx_udid: ");
   //Serial.println(thinx_udid);
 
