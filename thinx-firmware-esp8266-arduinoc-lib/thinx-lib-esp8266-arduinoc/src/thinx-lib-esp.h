@@ -1,11 +1,13 @@
 #include <Arduino.h>
+
+
+
 #define __DEBUG__
 #define __DEBUG_JSON__
 
 #define __USE_WIFI_MANAGER__
 
 #include <stdio.h>
-#include <Arduino.h>
 #include "ArduinoJson/ArduinoJson.h"
 
 #include "FS.h"
@@ -136,7 +138,7 @@ class THiNX {
       int status;                 // global WiFi status
       bool once;
       bool connected;
-      void configModeCallback(EAVManager*);
+      //void configModeCallback(EAVManager*);
       void saveConfigCallback();
 
       // THiNX API

@@ -1,4 +1,5 @@
 #include "thinx-lib-esp.h"
+#include "thinx.h"
 
 THiNX::THiNX() {
   // We could init from SPIFFS directly but it is initially empty anyway
@@ -41,6 +42,8 @@ void THiNX::initWithAPIKey(String api_key) {
 
   restoreDeviceInfo();
 
+  Serial.println("*TH: Connecting...");
+
   connect();
 
 #ifdef __DEBUG__
@@ -52,9 +55,11 @@ void THiNX::initWithAPIKey(String api_key) {
 #endif
 
   //delay(5000);
+  Serial.println("*TH: Checking in...");
   checkin();
 
   delay(1000);
+  Serial.println("*TH: Starting MQTT...");
   start_mqtt(); // requires valid udid and api_keys, and allocated WiFiClient.
 
 #ifdef __DEBUG__
@@ -298,13 +303,12 @@ void THiNX::checkin() {
 
   JsonObject& root = jsonBuffer.createObject();
   root["mac"] = thinx_mac();
-  root["firmware"] = String(thinx_firmware_version);
-  root["version"] = String(thinx_firmware_version_short);
-  root["commit"] = String(thinx_commit_id);
-  root["owner"] = String(thinx_owner);
-  root["alias"] = String(thinx_alias);
-  root["device_id"] = String(thinx_udid);
-  root["udid"] = String(thinx_udid);
+  root["firmware"] = thinx_firmware_version;
+  root["version"] = thinx_firmware_version_short;
+  root["commit"] = thinx_commit_id;
+  root["owner"] = thinx_owner;
+  root["alias"] = thinx_alias;
+  root["udid"] = thinx_udid;
 
   Serial.println("*TH: Wrapping JSON...");
 
@@ -335,7 +339,8 @@ void THiNX::start_mqtt() {
   Serial.print(thinx_mqtt_url);
 
   //PubSubClient mqtt_client(thx_wifi_client, thinx_mqtt_url.c_str());
-  new PubSubClient(*THiNX::mqtt_client);
+  Serial.print("*TH: Starting client");
+  mqtt_client = new PubSubClient(*THiNX::thx_wifi_client, THiNX::thinx_mqtt_url.c_str());
 
   Serial.print(" on port ");
   Serial.println(thinx_mqtt_port);
@@ -361,15 +366,18 @@ void THiNX::start_mqtt() {
   int willQos = 0;
   bool willRetain = false;
 
-  // TODO: Reimplement
-  // if (thx.mqtt_client->connect( id, user, pass, willTopic, willQos, willRetain, thx_disconnected_response.c_str()))
-  // FIXME: willTopic, willQos, willRetain, thx_disconnected_response.c_str()
+  if (mqtt_client->connect(MQTT::Connect(id)
+                .set_clean_session()
+                .set_will(willTopic, thx_disconnected_response.c_str())
+                .set_auth(user, pass)
+                .set_keepalive(30)
+              )) {
 
-  if (mqtt_client->connect(MQTT::Connect(id).set_auth(user, pass))) {
-
+    /*
     mqtt_client->set_callback([this](const MQTT::Publish &pub) {
+      Serial.print("*TH: MQTTC...");
       this->mqtt_callback(pub);
-    });
+    });*/
 
     Serial.println("*TH: MQTT Subscribing shared channel...");
     if (mqtt_client->subscribe(thinx_mqtt_shared_channel().c_str())) {
@@ -397,12 +405,6 @@ void THiNX::start_mqtt() {
 // EAVManager Setup Callbacks
 //
 
-// ICACHE_FLASH_ATTR
-void THiNX::configModeCallback (EAVManager *myEAVManager) {
-  Serial.println("Entered config mode");
-  Serial.println(WiFi.softAPIP());
-  Serial.println(myEAVManager->getConfigPortalSSID());
-}
 
 // `api_key_param` should have its value set when this gets called
 // ICACHE_FLASH_ATTR
@@ -427,18 +429,15 @@ void THiNX::saveConfigCallback() {
 
 void THiNX::connect() { // should return status bool
   thx_wifi_client = new WiFiClient();
-
+  manager = new EAVManager();
 
 #ifdef __USE_WIFI_MANAGER__
   EAVManagerParameter *api_key_param = new EAVManagerParameter("apikey", "API Key", thx_api_key, 64);
   manager->addParameter(api_key_param);
-
-  // TODO: FIXME: Does not work!
-  //manager.setAPCallback(configModeCallback);
   manager->setTimeout(10000);
   manager->autoConnect(autoconf_ssid,autoconf_pwd);
 #else
-  status = WiFi.begin(ssid, pass);
+  //status = WiFi.begin(ssid, pass);
 #endif
 
   // attempt to connect to Wifi network:
@@ -638,8 +637,7 @@ void THiNX::publish() {
   String channel = thinx_mqtt_channel();
   String message = thx_connected_response;
   if (mqtt_client->connected()) {
-    // causes crash...
-    //mqtt_client->publish(channel.c_str(), message.c_str());
+    mqtt_client->publish(channel.c_str(), message.c_str());
     Serial.println("*TH: MQTT connected, publish skipped.");
   } else {
     Serial.println("*TH: MQTT not connected, publish failed.");
@@ -648,6 +646,7 @@ void THiNX::publish() {
 
 void THiNX::loop() {
   Serial.println(".");
+  /*
   if (mqtt_client->connected()) {
     // causes crash...
     //mqtt_client->publish(channel.c_str(), message.c_str());
@@ -655,4 +654,5 @@ void THiNX::loop() {
   } else {
     Serial.println("*TH: MQTT not connected, loop failed.");
   }
+  */
 }
