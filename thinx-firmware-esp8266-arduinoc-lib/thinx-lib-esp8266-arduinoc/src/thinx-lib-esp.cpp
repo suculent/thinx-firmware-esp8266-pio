@@ -518,13 +518,12 @@ bool THiNX::restoreDeviceInfo() {
 
       const char* saved_udid = config["udid"];
       Serial.print("*TH: Saved udid: "); Serial.println(saved_udid);
-      if ((strlen(saved_udid) == 12) || (strlen(saved_udid) == 40)) { // warning: fix me
+      if ((strlen(saved_udid) > 1)) {
        THiNX::thinx_udid = String(saved_udid);
-       sprintf(thx_udid, "%s", saved_udid); // 40 max
      } else {
-       THiNX::thinx_udid = thinx_mac();
-       sprintf(thx_udid, "%s", saved_udid); // 40 max
+       THiNX::thinx_udid = THINX_UDID;
      }
+     sprintf(thx_udid, "%s", THiNX::thinx_udid.c_str()); // 40 max
      f.close();
     }
   }
