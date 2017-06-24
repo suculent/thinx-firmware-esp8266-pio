@@ -24,7 +24,7 @@ THiNX::THiNX(String __apikey) {
 void THiNX::initWithAPIKey(String api_key) {
 
   // Import build-time values from thinx.h
-  THiNX::thinx_commit_id = String(THINX_COMMIT_ID);
+  thinx_commit_id = String(THINX_COMMIT_ID);
   thinx_mqtt_url = String(THINX_MQTT_URL);
   thinx_cloud_url = String(THINX_CLOUD_URL);
   thinx_firmware_version = String(THINX_FIRMWARE_VERSION);
@@ -37,9 +37,7 @@ void THiNX::initWithAPIKey(String api_key) {
   // dynamic variables
   thinx_alias = String(THINX_ALIAS);
   thinx_owner = String(THINX_OWNER);
-
-  // debug only, deprecated
-  #define THINX_UDID "f8e88e40-43c8-11e7-9ad3-b7281c2b9610"
+  thinx_udid = String(THINX_UDID);
 
   if (once == true) {
     once = false;
@@ -318,6 +316,9 @@ void THiNX::checkin() {
   String als = thinx_alias;
   Serial.println(thinx_alias);
 
+  String uid = thinx_udid;
+  Serial.println(thinx_udid);
+
   JsonObject& root = jsonBuffer.createObject();
   root["mac"] = thinx_mac();
   root["firmware"] = thinx_firmware_version;
@@ -325,7 +326,7 @@ void THiNX::checkin() {
   root["commit"] = thinx_commit_id;
   root["owner"] = thinx_owner;
   root["alias"] = thinx_alias;
-  root["udid"] = thinx_udid;
+  root["udid"] = THiNX::thinx_udid;
 
   Serial.println("*TH: Wrapping JSON...");
 
@@ -367,7 +368,7 @@ void THiNX::start_mqtt() {
   String channel = thinx_mqtt_channel();
   Serial.println("*TH: Connecting to MQTT...");
 
-  Serial.print("*TH: UDID: ");
+  Serial.print("*TH: UDID (TODO: Must not be empty!): ");
   Serial.println(thinx_udid);
   Serial.print("*TH: AK: ");
   Serial.println(thinx_api_key);
@@ -524,6 +525,7 @@ bool THiNX::restoreDeviceInfo() {
        THiNX::thinx_udid = THINX_UDID;
      }
      sprintf(thx_udid, "%s", THiNX::thinx_udid.c_str()); // 40 max
+
      f.close();
     }
   }
@@ -619,7 +621,7 @@ void THiNX::senddata(String body) {
     thx_wifi_client->println(body);
     Serial.println("Body sent...");
 
-    long interval = 2000;
+    long interval = 5000;
     unsigned long currentMillis = millis(), previousMillis = millis();
 
     while(!thx_wifi_client->available()){
