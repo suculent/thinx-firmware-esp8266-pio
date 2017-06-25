@@ -5,9 +5,9 @@
 #define THINX_COMMIT_ID "269c6fa21cf7e02d7db098b1fc20d14b9c8ce600"
 #define THINX_MQTT_URL "mqtt://thinx.cloud"
 #define THINX_CLOUD_URL "thinx.cloud"
-#define THINX_FIRMWARE_VERSION "thinx-firmware-esp8266-1.6.84.92:2017-06-21"
-#define THINX_FIRMWARE_VERSION_SHORT "1.6.84.92"
-#define APP_VERSION "thinx-firmware-esp8266-1.6.84.92:2017-06-21"
+#define THINX_FIRMWARE_VERSION "thinx-firmware-esp8266-1.6.92:2017-06-25"
+#define THINX_FIRMWARE_VERSION_SHORT "1.6.92"
+#define APP_VERSION "thinx-firmware-esp8266-1.6.92:2017-06-25"
 #define THINX_MQTT_PORT 1883
 #define THINX_API_PORT 7442
 

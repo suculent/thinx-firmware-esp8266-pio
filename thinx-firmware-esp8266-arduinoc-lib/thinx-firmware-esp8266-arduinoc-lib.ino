@@ -5,7 +5,7 @@
 #include "Settings.h"
 #include "./thinx-lib-esp8266-arduinoc/src/thinx-lib-esp.h"
 
-//#define __DEBUG_WIFI__ /* use as fallback when device gets stucked with incorrect WiFi configuration, overwrites Flash in ESP */
+#define __DEBUG_WIFI__ /* use as fallback when device gets stucked with incorrect WiFi configuration, overwrites Flash in ESP */
 
 THiNX* thx = NULL;
 
@@ -14,7 +14,6 @@ void setup() {
   while (!Serial);
 
   Serial.printf("Sketch size: %u\n", ESP.getSketchSize());
-  Serial.printf("Free size: %u\n", ESP.getFreeSketchSpace());
   Serial.setDebugOutput(true);
 
 #ifdef __DEBUG_WIFI__
@@ -29,4 +28,5 @@ void loop()
 {
   delay(10000);
   thx->loop(); // check MQTT status, reconnect, etc.
+  Serial.printf("Free size: %u\n", ESP.getFreeSketchSpace());
 }

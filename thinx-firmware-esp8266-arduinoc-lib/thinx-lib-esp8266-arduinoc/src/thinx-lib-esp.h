@@ -147,7 +147,9 @@ class THiNX {
       // THiNX API
       char thx_api_key[64];     // new firmware requires 64 bytes
       char thx_udid[64];        // new firmware requires 64 bytes
+
       StaticJsonBuffer<1024> jsonBuffer;
+      StaticJsonBuffer<2048> wrapperBuffer;
 
       void checkin();
       void senddata(String);

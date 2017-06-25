@@ -330,7 +330,6 @@ void THiNX::checkin() {
 
   Serial.println("*TH: Wrapping JSON...");
 
-  StaticJsonBuffer<2048> wrapperBuffer;
   JsonObject& wrapper = wrapperBuffer.createObject();
   wrapper["registration"] = root;
 
@@ -353,6 +352,13 @@ void THiNX::checkin() {
 
 void THiNX::start_mqtt() {
 
+  Serial.print("*TH: UDID (TODO: Must be initially empty and MQTT will not start!): ");
+  Serial.println(thinx_udid);
+
+  if (thinx_udid.length() == 0) {
+    return;
+  }
+
   Serial.print("*TH: Contacting MQTT server ");
   Serial.print(thinx_mqtt_url);
 
@@ -368,8 +374,7 @@ void THiNX::start_mqtt() {
   String channel = thinx_mqtt_channel();
   Serial.println("*TH: Connecting to MQTT...");
 
-  Serial.print("*TH: UDID (TODO: Must not be empty!): ");
-  Serial.println(thinx_udid);
+
   Serial.print("*TH: AK: ");
   Serial.println(thinx_api_key);
   Serial.print("*TH: CH: ");
@@ -664,6 +669,7 @@ void THiNX::publish() {
 
 void THiNX::loop() {
   Serial.println(".");
+  checkin();
   /*
   if (mqtt_client->connected()) {
     // causes crash...
