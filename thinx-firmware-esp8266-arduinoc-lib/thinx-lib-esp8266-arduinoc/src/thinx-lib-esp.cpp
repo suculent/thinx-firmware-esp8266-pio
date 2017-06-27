@@ -1,6 +1,10 @@
 #include "thinx-lib-esp.h"
 #include "thinx.h"
 
+extern "C" {
+  #include "user_interface.h"
+}
+
 THiNX::THiNX() {
   // We could init from SPIFFS directly but it is initially empty anyway
   // and otherwise it could cause a lot of distraction.
@@ -8,7 +12,7 @@ THiNX::THiNX() {
 
 // Just provide thinx_api_key from Thinx.h as input to following initializer:
 THiNX::THiNX(String __apikey) {
-  THiNX::thinx_api_key = __apikey;
+  thinx_api_key = __apikey;
   autoconf_ssid  = "AP-THiNX"; // SSID in AP mode
   autoconf_pwd   = "PASSWORD"; // fallback to default password, however this should be generated uniquely as it is logged to console
   thx_udid[64] = {0};
@@ -364,7 +368,9 @@ void THiNX::start_mqtt() {
 
   //PubSubClient mqtt_client(thx_wifi_client, thinx_mqtt_url.c_str());
   Serial.print("*TH: Starting client");
-  mqtt_client = new PubSubClient(*THiNX::thx_wifi_client, THiNX::thinx_mqtt_url.c_str());
+  if (mqtt_client == NULL) {
+    mqtt_client = new PubSubClient(*THiNX::thx_wifi_client, THiNX::thinx_mqtt_url.c_str());
+  }
 
   Serial.print(" on port ");
   Serial.println(thinx_mqtt_port);
@@ -390,17 +396,17 @@ void THiNX::start_mqtt() {
   bool willRetain = false;
 
   if (mqtt_client->connect(MQTT::Connect(id)
-                .set_clean_session()
-                .set_will(willTopic, thx_disconnected_response.c_str())
+//                .set_clean_session()
+//                .set_will(willTopic, thx_disconnected_response.c_str())
                 .set_auth(user, pass)
                 .set_keepalive(30)
               )) {
 
-    /*
+
     mqtt_client->set_callback([this](const MQTT::Publish &pub) {
       Serial.print("*TH: MQTTC...");
       this->mqtt_callback(pub);
-    });*/
+    });
 
     Serial.println("*TH: MQTT Subscribing shared channel...");
     if (mqtt_client->subscribe(thinx_mqtt_shared_channel().c_str())) {
@@ -568,27 +574,29 @@ void THiNX::saveDeviceInfo()
   Serial.println("*TH: saveDeviceInfo() completed.");
   SPIFFS.end();
   Serial.println("*TH: SPIFFS.end();");
+
+  restoreDeviceInfo();
 }
 
 String THiNX::deviceInfo()
 {
-  //Serial.println("*TH: building device info:");
+  Serial.println("*TH: building device info:");
   JsonObject& root = jsonBuffer.createObject();
   root["alias"] = THiNX::thinx_alias;
-  //Serial.print("*TH: thinx_alias: ");
-  //Serial.println(thinx_alias);
+  Serial.print("*TH: thinx_alias: ");
+  Serial.println(thinx_alias);
 
   root["owner"] = THiNX::thinx_owner;
-  //Serial.print("*TH: thinx_owner: ");
-  //Serial.println(thinx_owner);
+  Serial.print("*TH: thinx_owner: ");
+  Serial.println(thinx_owner);
 
   root["apikey"] = THiNX::thx_api_key;
-  //Serial.print("*TH: thx_api_key: ");
-  //Serial.println(thx_api_key);
+  Serial.print("*TH: thx_api_key: ");
+  Serial.println(thx_api_key);
 
   root["udid"] = THiNX::thinx_udid;
-  //Serial.print("*TH: thinx_udid: ");
-  //Serial.println(thinx_udid);
+  Serial.print("*TH: thinx_udid: ");
+  Serial.println(thinx_udid);
 
   String jsonString;
   root.printTo(jsonString);
@@ -599,17 +607,10 @@ String THiNX::deviceInfo()
 // Private: HTTP Communication to API
 
 void THiNX::senddata(String body) {
-
   char shorthost[256] = {0};
   sprintf(shorthost, "%s", thinx_cloud_url.c_str());
-
-  // Response payload placeholder
   String payload = "";
-
-  Serial.print("*TH: thx_api_key API KEY "); Serial.println(thx_api_key);
-
   if (thx_wifi_client->connect(shorthost, 7442)) {
-
     // Standard public THiNX-Client device registration request
     // (same request can be called in order to add matching mobile application push token)
     thx_wifi_client->println("POST /device/register HTTP/1.1");
@@ -669,6 +670,10 @@ void THiNX::publish() {
 
 void THiNX::loop() {
   Serial.println(".");
+  uint32_t memfree = system_get_free_heap_size();
+  Serial.print("memfree: ");
+  Serial.println(memfree);
+
   checkin();
   /*
   if (mqtt_client->connected()) {
