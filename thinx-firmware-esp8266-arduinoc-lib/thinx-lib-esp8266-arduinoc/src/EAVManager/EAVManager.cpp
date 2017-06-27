@@ -110,7 +110,7 @@ void EAVManager::setupConfigPortal() {
 
   /* Setup web pages: root, wifi config pages, SO captive portal detectors and not found. */
   server->on("/", std::bind(&EAVManager::handleRoot, this));
-  server->on("/favicon.ico", std:bind(&EAVManager::handleFavicon, this));
+  server->on("/favicon.ico", std::bind(&EAVManager::handleFavicon, this));
   server->on("/wifi", std::bind(&EAVManager::handleWifi, this, true));
   server->on("/0wifi", std::bind(&EAVManager::handleWifi, this, false));
   server->on("/wifisave", std::bind(&EAVManager::handleWifiSave, this));
@@ -596,7 +596,7 @@ void EAVManager::handleWifiSave() {
 void EAVManager::handleFavicon() {
   DEBUG_WM(F("Favicon"));
   String icon = FPSTR(HTTP_FAVICON); // TODO: FIXME: maybe does not need the base64 prefix inside const then?
-  server->send(200, "data:image/x-icon;base64, icon);
+  server->send(200, "data:image/x-icon;base64", icon);
 }
 
 /** Handle the info page */
