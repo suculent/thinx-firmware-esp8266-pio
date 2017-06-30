@@ -364,12 +364,12 @@ void THiNX::start_mqtt() {
   }
 
   Serial.print("*TH: Contacting MQTT server ");
-  Serial.print(thinx_mqtt_url);
+  Serial.println(thinx_mqtt_url);
 
   //PubSubClient mqtt_client(thx_wifi_client, thinx_mqtt_url.c_str());
   Serial.print("*TH: Starting client");
   if (mqtt_client == NULL) {
-    mqtt_client = new PubSubClient(*THiNX::thx_wifi_client, THiNX::thinx_mqtt_url.c_str());
+    mqtt_client = new PubSubClient(*thx_wifi_client, thinx_mqtt_url.c_str());
   }
 
   Serial.print(" on port ");
@@ -396,15 +396,14 @@ void THiNX::start_mqtt() {
   bool willRetain = false;
 
   if (mqtt_client->connect(MQTT::Connect(id)
-//                .set_clean_session()
-//                .set_will(willTopic, thx_disconnected_response.c_str())
+                .set_clean_session()
+                .set_will(willTopic, thx_disconnected_response.c_str())
                 .set_auth(user, pass)
                 .set_keepalive(30)
               )) {
 
-
     mqtt_client->set_callback([this](const MQTT::Publish &pub) {
-      Serial.print("*TH: MQTTC...");
+      Serial.print("*TH: MQTT Callback Zero...");
       this->mqtt_callback(pub);
     });
 
@@ -671,17 +670,8 @@ void THiNX::publish() {
 void THiNX::loop() {
   Serial.println(".");
   uint32_t memfree = system_get_free_heap_size();
-  Serial.print("memfree: ");
+  Serial.print("PRE-PUBLISH memfree: ");
   Serial.println(memfree);
-
-  checkin();
-  /*
-  if (mqtt_client->connected()) {
-    // causes crash...
-    //mqtt_client->publish(channel.c_str(), message.c_str());
-    Serial.println("*TH: MQTT connected, loop skipped.");
-  } else {
-    Serial.println("*TH: MQTT not connected, loop failed.");
-  }
-  */
+  publish();
+  Serial.print("POST-PUBLISH memfree: ");
 }
