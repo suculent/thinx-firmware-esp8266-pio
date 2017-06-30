@@ -33,7 +33,7 @@ void THiNX::initWithAPIKey(String api_key) {
   thinx_cloud_url = String(THINX_CLOUD_URL);
   thinx_firmware_version = String(THINX_FIRMWARE_VERSION);
   thinx_firmware_version_short = String(THINX_FIRMWARE_VERSION_SHORT);
-  app_version = String(APP_VERSION);
+  app_version = String(THINX_APP_VERSION);
 
   thinx_mqtt_port = THINX_MQTT_PORT;
   thinx_api_port = THINX_API_PORT;
