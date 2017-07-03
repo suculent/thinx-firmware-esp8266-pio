@@ -661,9 +661,16 @@ void THiNX::publish() {
   String message = thx_connected_response;
   if (mqtt_client->connected()) {
     mqtt_client->publish(channel.c_str(), message.c_str());
-    Serial.println("*TH: MQTT connected, publish skipped.");
+    Serial.println("*TH: MQTT connected, published default message.");
   } else {
-    Serial.println("*TH: MQTT not connected, publish failed.");
+    Serial.println("*TH: MQTT not connected, reconnecting...");
+    start_mqtt();
+    if (mqtt_client->connected()) {
+      mqtt_client->publish(channel.c_str(), message.c_str());
+      Serial.println("*TH: MQTT connected, published default message.");
+    } else {
+      Serial.println("*TH: Reconnect failed...");
+    }
   }
 }
 
