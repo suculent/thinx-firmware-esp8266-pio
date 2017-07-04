@@ -159,7 +159,8 @@ class THiNX {
 
       // MQTT
       int last_mqtt_reconnect;
-      void start_mqtt();
+      bool start_mqtt();
+      bool mqtt_result;
 
       String thinx_mqtt_shared_channel();
       String thinx_mac();

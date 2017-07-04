@@ -79,7 +79,7 @@ void THiNX::initWithAPIKey(String api_key) {
 
   delay(1000);
   Serial.println("*TH: Starting MQTT...");
-  start_mqtt(); // requires valid udid and api_keys, and allocated WiFiClient.
+  mqtt_result = start_mqtt(); // requires valid udid and api_keys, and allocated WiFiClient.
 
 #ifdef __DEBUG__
   // test == our tenant name from THINX platform
@@ -354,13 +354,13 @@ void THiNX::checkin() {
 // MQTT Connection
 //
 
-void THiNX::start_mqtt() {
+bool THiNX::start_mqtt() {
 
   Serial.print("*TH: UDID (TODO: Must be initially empty and MQTT will not start!): ");
   Serial.println(thinx_udid);
 
   if (thinx_udid.length() == 0) {
-    return;
+    return false;
   }
 
   Serial.print("*TH: Contacting MQTT server ");
@@ -402,6 +402,9 @@ void THiNX::start_mqtt() {
                 .set_keepalive(30)
               )) {
 
+    //! Set the callback function
+    // PubSubClient& set_callback(callback_t cb) { _callback = cb; return *this; }
+
     mqtt_client->set_callback([this](const MQTT::Publish &pub) {
       Serial.print("*TH: MQTT Callback Zero...");
       this->mqtt_callback(pub);
@@ -424,8 +427,10 @@ void THiNX::start_mqtt() {
       Serial.println("*TH: Not subscribed.");
     }
     mqtt_client->publish(channel.c_str(), thx_connected_response.c_str());
+    return true;
   } else {
     Serial.println("*TH: MQTT Not connected.");
+    return false;
   }
 }
 
@@ -664,10 +669,10 @@ void THiNX::publish() {
     Serial.println("*TH: MQTT connected, published default message.");
   } else {
     Serial.println("*TH: MQTT not connected, reconnecting...");
-    start_mqtt();
-    if (mqtt_client->connected()) {
+    mqtt_result = start_mqtt();
+    if (mqtt_result && mqtt_client->connected()) {
       mqtt_client->publish(channel.c_str(), message.c_str());
-      Serial.println("*TH: MQTT connected, published default message.");
+      Serial.println("*TH: MQTT reconnected, published default message.");
     } else {
       Serial.println("*TH: Reconnect failed...");
     }
@@ -681,4 +686,6 @@ void THiNX::loop() {
   Serial.println(memfree);
   publish();
   Serial.print("POST-PUBLISH memfree: ");
+  memfree = system_get_free_heap_size();
+  Serial.println(memfree);
 }
