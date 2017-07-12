@@ -332,6 +332,8 @@ void THiNX::checkin() {
   root["alias"] = thinx_alias;
   root["udid"] = THiNX::thinx_udid;
 
+  root["platform"] = String(THINX_PLATFORM);
+
   Serial.println("*TH: Wrapping JSON...");
 
   JsonObject& wrapper = wrapperBuffer.createObject();

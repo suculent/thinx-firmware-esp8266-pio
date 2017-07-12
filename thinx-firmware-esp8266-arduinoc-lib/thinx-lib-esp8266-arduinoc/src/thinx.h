@@ -17,3 +17,5 @@
 
 // debug only, can not be overwritten from API if set!
 #define THINX_UDID "f8e88e40-43c8-11e7-9ad3-b7281c2b9610"
+
+#define THINX_PLATFORM "platformio"
