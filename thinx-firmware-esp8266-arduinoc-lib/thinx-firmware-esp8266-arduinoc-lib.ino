@@ -1,7 +1,6 @@
 /* OTA enabled firmware for Wemos D1 (ESP 8266, Arduino) */
 
 #include "Arduino.h"
-
 #include "Settings.h"
 #include "./thinx-lib-esp8266-arduinoc/src/thinx-lib-esp.h"
 
@@ -13,8 +12,8 @@ void setup() {
   Serial.begin(115200);
   while (!Serial);
 
-  Serial.printf("Sketch size: %u\n", ESP.getSketchSize());
-  Serial.setDebugOutput(true);
+  //Serial.printf("Sketch size: %u\n", ESP.getSketchSize());
+  //Serial.setDebugOutput(true);
 
 #ifdef __DEBUG_WIFI__
   WiFi.begin(ssid, pass);

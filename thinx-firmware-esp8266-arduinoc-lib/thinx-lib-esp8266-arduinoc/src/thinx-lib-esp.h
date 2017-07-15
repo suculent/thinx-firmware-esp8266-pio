@@ -3,32 +3,17 @@
 #define __DEBUG__
 #define __DEBUG_JSON__
 
-#define __USE_WIFI_MANAGER__
-
 #include <stdio.h>
 #include "ArduinoJson/ArduinoJson.h"
 
-#include <FS.h>
 
-// Inject SSID and Password from 'Settings.h' for testing where we do not use EAVManager
-#ifndef __USE_WIFI_MANAGER__
-#include "Settings.h"
-#else
-// Custom clone of EAVManager (we shall revert back to OpenSource if this won't be needed)
-// Purpose: SSID/password injection in AP mode
-// Solution: re-implement from UDP in mobile application
-//
-// Changes so far: `int connectWifi()` moved to public section in header
-// - buildable, but requires UDP end-to-end)
+#include <FS.h>
 #include "EAVManager/EAVManager.h"
 #include <EAVManager.h>
-#endif
 
 // Using better than Arduino-bundled version of MQTT https://github.com/Imroy/pubsubclient
 #include "PubSubClient/PubSubClient.h" // Local checkout
 //#include <PubSubClient.h> // Arduino Library
-
-// WORK IN PROGRESS: Send a registration post request with current MAC, Firmware descriptor, commit ID; sha and version if known (with all other useful params like expected device owner).
 
 // TODO: Add UDP AT&U= responder like in EAV? Considered unsafe. Device will notify available update and download/install it on its own (possibly throught THiNX Security Gateway (THiNX )
 // IN PROGRESS: Add MQTT client (target IP defined using Thinx.h) and forced firmware update responder (will update on force or save in-memory state from new or retained mqtt notification)
@@ -131,6 +116,7 @@ class THiNX {
     }
 
     String thinx_mqtt_channel();
+    String thinx_mqtt_status_channel();
 
     private:
 

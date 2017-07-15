@@ -10,7 +10,7 @@ THiNX::THiNX() {
   // and otherwise it could cause a lot of distraction.
 }
 
-// Just provide thinx_api_key from Thinx.h as input to following initializer:
+// Should use THINX_API_KEY from thinx.h
 THiNX::THiNX(String __apikey) {
   thinx_api_key = __apikey;
   autoconf_ssid  = "AP-THiNX"; // SSID in AP mode
@@ -20,6 +20,7 @@ THiNX::THiNX(String __apikey) {
   shouldSaveConfig = false;
   connected = false;
   once = true;
+  mqtt_client = NULL;
 
   initWithAPIKey(thinx_api_key);
 }
@@ -78,8 +79,14 @@ void THiNX::initWithAPIKey(String api_key) {
   checkin();
 
   delay(1000);
-  Serial.println("*TH: Starting MQTT...");
+
   mqtt_result = start_mqtt(); // requires valid udid and api_keys, and allocated WiFiClient.
+
+  if (mqtt_result == true) {
+    Serial.println("*TH: Starting MQTT...");
+  } else {
+    Serial.println("*TH: MQTT delayed...");
+  }
 
 #ifdef __DEBUG__
   // test == our tenant name from THINX platform
@@ -156,7 +163,6 @@ void THiNX::thinx_parse(String payload) {
   // TODO: Should parse response only for this device_id (which must be internal and not a mac)
   int startIndex = payload.indexOf("{\"registration\"") ;
   int endIndex = payload.indexOf("}}") + 2;
-
   String body = payload.substring(startIndex, endIndex);
 
 #ifdef __DEBUG__
@@ -261,11 +267,11 @@ void THiNX::thinx_parse(String payload) {
 */
 
 String THiNX::thinx_mqtt_channel() {
-  return String("/thinx/") + thinx_owner + "/" + thinx_udid;
+  return String("/") + thinx_owner + "/" + thinx_udid;
 }
 
-String THiNX::thinx_mqtt_shared_channel() {
-  return String("/thinx/") + thinx_owner + "/shared";
+String THiNX::thinx_mqtt_status_channel() {
+  return String("/") + thinx_owner + "/" + thinx_udid + "/status";
 }
 
 /* Private library method */
@@ -303,24 +309,13 @@ void THiNX::checkin() {
   Serial.println("*TH: Building JSON...");
 
   String tmac = thinx_mac();
-  Serial.println(tmac);
-
   String fw = thinx_firmware_version;
-  Serial.println(fw);
-
   String fws = thinx_firmware_version_short;
-  Serial.println(fws);
-
   String cid = String(thinx_commit_id);
-  Serial.println(cid);
-
   String oid = thinx_owner;
-  Serial.println(oid);
-
   String als = thinx_alias;
-  Serial.println(thinx_alias);
-
   String uid = thinx_udid;
+  Serial.print("UDID:");
   Serial.println(thinx_udid);
 
   JsonObject& root = jsonBuffer.createObject();
@@ -330,7 +325,10 @@ void THiNX::checkin() {
   root["commit"] = thinx_commit_id;
   root["owner"] = thinx_owner;
   root["alias"] = thinx_alias;
-  root["udid"] = THiNX::thinx_udid;
+
+  if (thinx_udid != NULL) {
+    root["udid"] = thinx_udid;
+  }
 
   root["platform"] = String(THINX_PLATFORM);
 
@@ -346,7 +344,6 @@ void THiNX::checkin() {
 
   String body;
   wrapper.printTo(body);
-
   senddata(body);
 }
 
@@ -358,12 +355,12 @@ void THiNX::checkin() {
 
 bool THiNX::start_mqtt() {
 
-  Serial.print("*TH: UDID (TODO: Must be initially empty and MQTT will not start!): ");
-  Serial.println(thinx_udid);
-
   if (thinx_udid.length() == 0) {
     return false;
   }
+
+  Serial.print("*TH: UDID: ");
+  Serial.println(thinx_udid);
 
   Serial.print("*TH: Contacting MQTT server ");
   Serial.println(thinx_mqtt_url);
@@ -412,23 +409,19 @@ bool THiNX::start_mqtt() {
       this->mqtt_callback(pub);
     });
 
-    Serial.println("*TH: MQTT Subscribing shared channel...");
-    if (mqtt_client->subscribe(thinx_mqtt_shared_channel().c_str())) {
-      Serial.print("*TH: MQTT channel ");
-      Serial.print(channel);
-      Serial.println(" successfully subscribed.");
-    } else {
-      Serial.println("*TH: Not subscribed.");
-    }
-    Serial.println("*TH: MQTT Subscribing device channel...");
+    Serial.print("*TH: MQTT Subscribing device channel: ");
+    Serial.println(thinx_mqtt_channel());
     if (mqtt_client->subscribe(thinx_mqtt_channel().c_str())) {
       Serial.print("*TH: ");
-      Serial.print(channel);
+      Serial.print(thinx_mqtt_channel());
       Serial.println(" successfully subscribed.");
     } else {
       Serial.println("*TH: Not subscribed.");
     }
-    mqtt_client->publish(channel.c_str(), thx_connected_response.c_str());
+
+    mqtt_client->publish(thinx_mqtt_status_channel().c_str(), thx_connected_response.c_str());
+    // mqtt_client->publish(thinx_mqtt_status_channel().c_str(), thx_connected_response.c_str()); TODO: send registration JSON for possible firmware updates
+
     return true;
   } else {
     Serial.println("*TH: MQTT Not connected.");
@@ -466,18 +459,13 @@ void THiNX::connect() { // should return status bool
   thx_wifi_client = new WiFiClient();
   manager = new EAVManager();
 
-#ifdef __USE_WIFI_MANAGER__
   EAVManagerParameter *api_key_param = new EAVManagerParameter("apikey", "API Key", thx_api_key, 64);
   manager->addParameter(api_key_param);
   manager->setTimeout(10000);
   manager->autoConnect(autoconf_ssid,autoconf_pwd);
-#else
-  //status = WiFi.begin(ssid, pass);
-#endif
 
   // attempt to connect to Wifi network:
   while ( !connected ) {
-#ifdef __USE_WIFI_MANAGER__
     status = manager->autoConnect(autoconf_ssid,autoconf_pwd);
     if (status == true) {
       connected = true;
@@ -487,17 +475,6 @@ void THiNX::connect() { // should return status bool
       delay(3000);
       connected = false;
     }
-#else
-    Serial.print("*TH: Connecting to SSID: ");
-    Serial.print(ssid);
-    Serial.print("*TH: Waiting for WiFi. Status: ");
-    Serial.println(status);
-    delay(3000);
-    status = WiFi.begin(ssid, pass);
-    if (status == WL_CONNECTED) {
-      connected = true;
-    }
-#endif
   }
 }
 
@@ -520,26 +497,26 @@ bool THiNX::restoreDeviceInfo() {
 
       const char* saved_alias = config["alias"];
       if (strlen(saved_alias) > 1) {
-        THiNX::thinx_alias = String(saved_alias);
+        thinx_alias = String(saved_alias);
       }
 
       const char* saved_owner = config["owner"];
       if (strlen(saved_owner) > 5) {
-        THiNX::thinx_owner = String(saved_owner);
+        thinx_owner = String(saved_owner);
       }
 
       const char* saved_apikey = config["apikey"];
       if (strlen(saved_apikey) > 8) {
-       THiNX::thinx_api_key = String(saved_apikey);
+       thinx_api_key = String(saved_apikey);
        sprintf(thx_api_key, "%s", saved_apikey); // 40 max
       }
 
       const char* saved_udid = config["udid"];
       Serial.print("*TH: Saved udid: "); Serial.println(saved_udid);
       if ((strlen(saved_udid) > 1)) {
-       THiNX::thinx_udid = String(saved_udid);
+       thinx_udid = String(saved_udid);
      } else {
-       THiNX::thinx_udid = THINX_UDID;
+       thinx_udid = THINX_UDID;
      }
      sprintf(thx_udid, "%s", THiNX::thinx_udid.c_str()); // 40 max
 
@@ -633,11 +610,10 @@ void THiNX::senddata(String body) {
     thx_wifi_client->println(body);
     Serial.println("Body sent...");
 
-    long interval = 5000;
+    long interval = 10000;
     unsigned long currentMillis = millis(), previousMillis = millis();
 
     while(!thx_wifi_client->available()){
-      delay(1);
       if( (currentMillis - previousMillis) > interval ){
         Serial.println("Response Timeout. TODO: Should retry later.");
         thx_wifi_client->stop();
@@ -647,14 +623,13 @@ void THiNX::senddata(String body) {
     }
 
     while ( thx_wifi_client->connected() ) {
-      delay(1);
       if ( thx_wifi_client->available() ) {
         char str = thx_wifi_client->read();
         payload = payload + String(str);
-        delay(1);
       }
     }
 
+    thx_wifi_client->stop();
     thinx_parse(payload);
 
   } else {
@@ -664,12 +639,12 @@ void THiNX::senddata(String body) {
 }
 
 void THiNX::publish() {
-  String channel = thinx_mqtt_channel();
-  String message = thx_connected_response;
+  if (mqtt_client == NULL) return;
   if (mqtt_client->connected()) {
-    mqtt_client->publish(channel.c_str(), message.c_str());
-    Serial.println("*TH: MQTT connected, published default message.");
+    Serial.print("*TH: MQTT still connected...");
   } else {
+    String channel = thinx_mqtt_channel();
+    String message = thx_connected_response;
     Serial.println("*TH: MQTT not connected, reconnecting...");
     mqtt_result = start_mqtt();
     if (mqtt_result && mqtt_client->connected()) {
