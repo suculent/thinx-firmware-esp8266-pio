@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include "ArduinoJson/ArduinoJson.h"
 
-
 #include <FS.h>
 #include "EAVManager/EAVManager.h"
 #include <EAVManager.h>
@@ -28,6 +27,13 @@
 class THiNX {
 
   public:
+
+    enum payload_type {
+      Unknown = 0,
+      UPDATE = 1,		// Firmware Update Response Payload
+      REGISTRATION = 2,		// Registration Response Payload
+      Reserved = 255,		// Reserved
+    };
 
     // Public API
     void initWithAPIKey(String);
@@ -69,54 +75,12 @@ class THiNX {
 
     uint8_t buf[MQTT_BUFFER_SIZE];
 
-    void receive_ota(const MQTT::Publish& pub) {
-      Serial.println("*TH: MQTT update...");
-      uint32_t startTime = millis();
-      uint32_t size = pub.payload_len();
-      if (size == 0)
-        return;
-
-      Serial.print("Receiving OTA of ");
-      Serial.print(size);
-      Serial.println(" bytes...");
-
-      Serial.setDebugOutput(true);
-      if (ESP.updateSketch(*pub.payload_stream(), size, true, false)) {
-        Serial.println("Clearing retained message.");
-        THiNX::mqtt_client->publish(MQTT::Publish(pub.topic(), "").set_retain());
-        THiNX::mqtt_client->disconnect();
-
-        Serial.printf("Update Success: %u\nRebooting...\n", millis() - startTime);
-        ESP.restart();
-        delay(10000);
-      }
-
-      Update.printError(Serial);
-      Serial.setDebugOutput(false);
-    }
-
-    inline void mqtt_callback(const MQTT::Publish& pub) {
-      Serial.println("*TH: MQTT callback...");
-      if (pub.has_stream()) {
-        Serial.print(pub.topic());
-        Serial.print(" => ");
-        if (pub.has_stream()) {
-          uint8_t buf[MQTT_BUFFER_SIZE];
-          int read;
-          while (read = pub.payload_stream()->read(buf, MQTT_BUFFER_SIZE)) {
-            // Do something with data in buffer
-            Serial.write(buf, read);
-          }
-          pub.payload_stream()->stop();
-          Serial.println("stop.");
-        } else {
-          Serial.println(pub.payload_string());
-        }
-      }
-    }
-
     String thinx_mqtt_channel();
     String thinx_mqtt_status_channel();
+
+    // Response parsers
+    //void parse_registration(JSONObject);
+    //void parse_update(JSONObject);
 
     private:
 
@@ -139,7 +103,7 @@ class THiNX {
 
       void checkin();
       void senddata(String);
-      void thinx_parse(String);
+      void parse(String);
       void connect();
       void esp_update(String);
 

@@ -156,12 +156,25 @@ void THiNX::esp_update(String url) {
 /* Private library definitions */
 
 
+
+
 /* Private library method */
 
-void THiNX::thinx_parse(String payload) {
+void THiNX::parse(String payload) {
 
   // TODO: Should parse response only for this device_id (which must be internal and not a mac)
-  int startIndex = payload.indexOf("{\"registration\"") ;
+
+  payload_type ptype = Unknown;
+
+  int startIndex = payload.indexOf("{\"registration\"");
+
+  if (startIndex < 0) {
+    startIndex = payload.indexOf("{\"update\"");
+    ptype = UPDATE;
+  } else {
+    ptype = REGISTRATION;
+  }
+
   int endIndex = payload.indexOf("}}") + 2;
   String body = payload.substring(startIndex, endIndex);
 
@@ -180,84 +193,116 @@ void THiNX::thinx_parse(String payload) {
     return;
   }
 
-  JsonObject& registration = root["registration"];
+  switch (ptype) {
 
-  if ( !registration.success() ) {
-#ifdef __DEBUG__
-    Serial.println("Failed parsing registration node.");
-#endif
-    return;
+    case 2: {
+
+      //THiNX::parse_update(root);
+      JsonObject& update = root["update"];
+      Serial.println("TODO: Parse update payload...");
+
+      } break;
+
+    case 1: {
+
+      //THiNX::parse_registration(root);
+      JsonObject& registration = root["registration"];
+
+      if ( !registration.success() ) {
+    #ifdef __DEBUG__
+        Serial.println("Failed parsing registration node.");
+    #endif
+        return;
+      }
+
+      bool success = registration["success"];
+      String status = registration["status"];
+
+    #ifdef __DEBUG__
+        Serial.print("success: ");
+        Serial.println(success);
+
+        Serial.print("status: ");
+        Serial.println(status);
+    #endif
+
+      if (status == "OK") {
+
+        String alias = registration["alias"];
+        Serial.print("Reading alias: ");
+        Serial.print(alias);
+        if ( alias.length() > 0 ) {
+          Serial.println(String("assigning alias: ") + alias);
+          thinx_alias = alias;
+        }
+
+        String owner = registration["owner"];
+        Serial.println("Reading owner: ");
+        if ( owner.length() > 0 ) {
+          Serial.println(String("assigning owner: ") + owner);
+          thinx_owner = owner;
+        }
+
+        Serial.println("Reading udid: ");
+        String udid = registration["udid"];
+        if ( udid.length() > 0 ) {
+          Serial.println(String("assigning udid: ") + udid);
+          THiNX::thinx_udid = udid;
+        }
+
+        delay(1);
+
+        saveDeviceInfo();
+
+      } else if (status == "FIRMWARE_UPDATE") {
+
+        String mac = registration["mac"];
+        Serial.println(String("mac: ") + mac);
+        // TODO: must be this or ANY
+
+        String commit = registration["commit"];
+        Serial.println(String("commit: ") + commit);
+
+        // should not be this
+        if (commit == thinx_commit_id) {
+          Serial.println("*TH: Warning: new firmware has same commit_id as current.");
+        }
+
+        String version = registration["version"];
+        Serial.println(String("version: ") + version);
+
+        Serial.println("Starting update...");
+
+        String url = registration["url"];
+        if (url) {
+    #ifdef __DEBUG__
+          Serial.println("*TH: SKIPPING force update with URL:" + url);
+    #else
+          // TODO: must not contain HTTP, extend with http://thinx.cloud/" // could use node.js as a secure provider instead of Apache!
+          esp_update(url);
+    #endif
+        }
+      }
+
+      } break;
+
+    default:
+      Serial.println("Nothing to do...");
+      break;
   }
 
-  bool success = registration["success"];
-  String status = registration["status"];
-
-#ifdef __DEBUG__
-    Serial.print("success: ");
-    Serial.println(success);
-
-    Serial.print("status: ");
-    Serial.println(status);
-#endif
-
-  if (status == "OK") {
-
-    String alias = registration["alias"];
-    Serial.print("Reading alias: ");
-    Serial.print(alias);
-    if ( alias.length() > 0 ) {
-      Serial.println(String("assigning alias: ") + alias);
-      thinx_alias = alias;
-    }
-
-    String owner = registration["owner"];
-    Serial.println("Reading owner: ");
-    if ( owner.length() > 0 ) {
-      Serial.println(String("assigning owner: ") + owner);
-      thinx_owner = owner;
-    }
-
-    Serial.println("Reading udid: ");
-    String udid = registration["udid"];
-    if ( udid.length() > 0 ) {
-      Serial.println(String("assigning udid: ") + udid);
-      THiNX::thinx_udid = udid;
-    }
-
-    delay(1);
-
-    saveDeviceInfo();
-
-  } else if (status == "FIRMWARE_UPDATE") {
-
-    String mac = registration["mac"];
-    Serial.println(String("mac: ") + mac);
-    // TODO: must be this or ANY
-
-    String commit = registration["commit"];
-    Serial.println(String("commit: ") + commit);
-
-    // should not be this
-    if (commit == thinx_commit_id) {
-      Serial.println("*TH: Warning: new firmware has same commit_id as current.");
-    }
-
-    String version = registration["version"];
-    Serial.println(String("version: ") + version);
-
-    Serial.println("Starting update...");
-
-    String url = registration["url"];
-    if (url) {
-#ifdef __DEBUG__
-      Serial.println("*TH: SKIPPING force update with URL:" + url);
-#else
-      // TODO: must not contain HTTP, extend with http://thinx.cloud/" // could use node.js as a secure provider instead of Apache!
-      esp_update(url);
-#endif
-    }
-  }
 }
+
+/*
+void THiNX::parse_registration(JSONObject &root) {
+
+
+}
+
+void THiNX::parse_update(JSONObject &root) {
+
+}
+*/
 
 /* Private library method */
 
@@ -382,7 +427,7 @@ bool THiNX::start_mqtt() {
 
   Serial.print("*TH: AK: ");
   Serial.println(thinx_api_key);
-  Serial.print("*TH: CH: ");
+  Serial.print("*TH: DCH: ");
   Serial.println(channel);
 
   String mac = thinx_mac();
@@ -404,10 +449,7 @@ bool THiNX::start_mqtt() {
     //! Set the callback function
     // PubSubClient& set_callback(callback_t cb) { _callback = cb; return *this; }
 
-    mqtt_client->set_callback([this](const MQTT::Publish &pub) {
-      Serial.print("*TH: MQTT Callback Zero...");
-      this->mqtt_callback(pub);
-    });
+
 
     Serial.print("*TH: MQTT Subscribing device channel: ");
     Serial.println(thinx_mqtt_channel());
@@ -415,9 +457,45 @@ bool THiNX::start_mqtt() {
       Serial.print("*TH: ");
       Serial.print(thinx_mqtt_channel());
       Serial.println(" successfully subscribed.");
-    } else {
-      Serial.println("*TH: Not subscribed.");
-    }
+
+      Serial.println("Trying to set callback...");
+
+      mqtt_client->set_callback([this](const MQTT::Publish &pub){
+
+        Serial.println("*TH: MQTT callback...");
+        Serial.print(pub.topic());
+        Serial.print(" => ");
+
+        if (pub.has_stream()) {
+
+          /*
+          uint8_t buf[MQTT_BUFFER_SIZE];
+          int read;
+          while (read = pub.payload_stream()->read(buf, MQTT_BUFFER_SIZE)) {
+            // Do something with data in buffer
+            Serial.write(buf, read);
+          }*/
+
+          Serial.setDebugOutput(true);
+          uint32_t startTime = millis();
+          uint32_t size = pub.payload_len();
+          if ( ESP.updateSketch(*pub.payload_stream(), size, true, false) ) {
+            Serial.println("Clearing retained message.");
+            THiNX::mqtt_client->publish(MQTT::Publish(pub.topic(), "{ \"status\": \"rebooting\" }").set_retain());
+            THiNX::mqtt_client->disconnect();
+            pub.payload_stream()->stop();
+            Serial.printf("Update Success: %u\nRebooting...\n", millis() - startTime);
+            ESP.restart();
+            delay(10000);
+          }
+          Serial.println("stop.");
+
+        } else {
+          String payload = pub.payload_string();
+          Serial.println(payload);
+          THiNX::parse(payload);
+        }
+    }); // end-of-callback
 
     mqtt_client->publish(thinx_mqtt_status_channel().c_str(), thx_connected_response.c_str());
     // mqtt_client->publish(thinx_mqtt_status_channel().c_str(), thx_connected_response.c_str()); TODO: send registration JSON for possible firmware updates
@@ -427,6 +505,7 @@ bool THiNX::start_mqtt() {
     Serial.println("*TH: MQTT Not connected.");
     return false;
   }
+}
 }
 
 //
@@ -630,7 +709,7 @@ void THiNX::senddata(String body) {
     }
 
     thx_wifi_client->stop();
-    thinx_parse(payload);
+    THiNX::parse(payload);
 
   } else {
     Serial.println("*TH: API connection failed.");
