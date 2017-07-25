@@ -358,6 +358,8 @@ String THiNX::checkin_body() {
 
   Serial.println("*TH: Building request...");
 
+  restoreDeviceInfo();
+
   String tmac = thinx_mac();
   String fw = thinx_firmware_version;
   String fws = thinx_firmware_version_short;
@@ -561,7 +563,7 @@ void THiNX::connect() { // should return status bool
 
 bool THiNX::restoreDeviceInfo() {
 
-  File f = SPIFFS.open("/thinx.cfg", "r");
+  File f = SPIFFS.open("/thx.cfg", "r");
   if (!f) {
       Serial.println("*TH: No remote configuration found so far...");
       return false;
@@ -605,24 +607,17 @@ bool THiNX::restoreDeviceInfo() {
 /* Stores mutable device data (alias, owner) retrieved from API */
 void THiNX::saveDeviceInfo()
 {
-
-  //Serial.println("*TH: Opening/creating config file...");
-
   const char *config = deviceInfo().c_str();
-  Serial.println(config);
-  Serial.println("*TH: Crashes even when NOT Writing configuration to file because it would crash, everything stays in memory, api key must be set manually so far...");
 
   File f = SPIFFS.open("/thx.cfg", "w");
   if (f) {
-    Serial.print("*TH: saving configuration: ");
-    f.println(config);
-    Serial.println("*TH: closing file crashes here...");
+    Serial.print("*TH: saving configuration...");
     f.close();
   } else {
     Serial.println("*TH: Cannot save configuration, formatting SPIFFS...");
     SPIFFS.format();
-    Serial.println("*TH: Trying to save again..."); // TODO: visual feedback
-    f = SPIFFS.open("/thinx.cfg", "w");
+    Serial.println("*TH: Trying to save again...");
+    f = SPIFFS.open("/thx.cfg", "w");
     if (f) {
       saveDeviceInfo();
       f.close();
