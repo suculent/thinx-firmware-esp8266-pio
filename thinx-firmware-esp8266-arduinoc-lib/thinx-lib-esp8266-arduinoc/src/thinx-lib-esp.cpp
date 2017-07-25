@@ -195,7 +195,7 @@ void THiNX::parse(String payload) {
 
   switch (ptype) {
 
-    case 2: {
+    case UPDATE: {
 
       //THiNX::parse_update(root);
       JsonObject& update = root["update"];
@@ -203,7 +203,7 @@ void THiNX::parse(String payload) {
 
       } break;
 
-    case 1: {
+    case REGISTRATION: {
 
       //THiNX::parse_registration(root);
       JsonObject& registration = root["registration"];
