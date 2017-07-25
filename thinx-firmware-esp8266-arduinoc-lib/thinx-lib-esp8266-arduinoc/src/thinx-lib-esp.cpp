@@ -166,16 +166,23 @@ void THiNX::parse(String payload) {
 
   payload_type ptype = Unknown;
 
-  int startIndex = payload.indexOf("{\"registration\"");
+  int startIndex = 0;
+  int endIndex = payload.length();
 
-  if (startIndex < 0) {
-    startIndex = payload.indexOf("{\"update\"");
+  int reg_index = payload.indexOf("{\"registration\"");
+  int upd_index = payload.indexOf("{\"update\"");
+
+  if (upd_index > startIndex) {
+    startIndex = upd_index;
     ptype = UPDATE;
-  } else {
+  }
+
+  if (reg_index > startIndex) {
+    startIndex = reg_index;
+    endIndex = payload.indexOf("}}") + 2;
     ptype = REGISTRATION;
   }
 
-  int endIndex = payload.indexOf("}}") + 2;
   String body = payload.substring(startIndex, endIndex);
 
 #ifdef __DEBUG__
@@ -338,20 +345,19 @@ String THiNX::thinx_mac() {
 /* Private library method */
 
 void THiNX::checkin() {
-
   Serial.println("*TH: Starting API checkin...");
-
   if(!connected) {
     Serial.println("*TH: Cannot checkin while not connected, exiting.");
-    return;
+  } else {
+    String body = checkin_body();
+    wrapper.printTo(body);
+    senddata(body);
   }
+}
 
-  // Default MAC address for AP controller
-  byte mac[] = {
-    0xDE, 0xFA, 0xDE, 0xFA, 0xDE, 0xFA
-  };
+String THiNX::checkin_body() {
 
-  Serial.println("*TH: Building JSON...");
+  Serial.println("*TH: Building request...");
 
   String tmac = thinx_mac();
   String fw = thinx_firmware_version;
@@ -377,7 +383,7 @@ void THiNX::checkin() {
 
   root["platform"] = String(THINX_PLATFORM);
 
-  Serial.println("*TH: Wrapping JSON...");
+  Serial.println("*TH: Wrapping request...");
 
   JsonObject& wrapper = wrapperBuffer.createObject();
   wrapper["registration"] = root;
@@ -389,7 +395,7 @@ void THiNX::checkin() {
 
   String body;
   wrapper.printTo(body);
-  senddata(body);
+  return body;
 }
 
 /* Private library method */
@@ -440,25 +446,10 @@ bool THiNX::start_mqtt() {
   bool willRetain = false;
 
   if (mqtt_client->connect(MQTT::Connect(id)
-                .set_clean_session()
                 .set_will(willTopic, thx_disconnected_response.c_str())
                 .set_auth(user, pass)
                 .set_keepalive(30)
               )) {
-
-    //! Set the callback function
-    // PubSubClient& set_callback(callback_t cb) { _callback = cb; return *this; }
-
-
-
-    Serial.print("*TH: MQTT Subscribing device channel: ");
-    Serial.println(thinx_mqtt_channel());
-    if (mqtt_client->subscribe(thinx_mqtt_channel().c_str())) {
-      Serial.print("*TH: ");
-      Serial.print(thinx_mqtt_channel());
-      Serial.println(" successfully subscribed.");
-
-      Serial.println("Trying to set callback...");
 
       mqtt_client->set_callback([this](const MQTT::Publish &pub){
 
@@ -467,15 +458,7 @@ bool THiNX::start_mqtt() {
         Serial.print(" => ");
 
         if (pub.has_stream()) {
-
-          /*
-          uint8_t buf[MQTT_BUFFER_SIZE];
-          int read;
-          while (read = pub.payload_stream()->read(buf, MQTT_BUFFER_SIZE)) {
-            // Do something with data in buffer
-            Serial.write(buf, read);
-          }*/
-
+          Serial.println("*TH: MQTT Type: Stream...");
           Serial.setDebugOutput(true);
           uint32_t startTime = millis();
           uint32_t size = pub.payload_len();
@@ -488,19 +471,38 @@ bool THiNX::start_mqtt() {
             ESP.restart();
             delay(10000);
           }
+
           Serial.println("stop.");
 
         } else {
+          Serial.println("*TH: MQTT Type: String...");
           String payload = pub.payload_string();
           Serial.println(payload);
           THiNX::parse(payload);
         }
     }); // end-of-callback
 
-    mqtt_client->publish(thinx_mqtt_status_channel().c_str(), thx_connected_response.c_str());
-    // mqtt_client->publish(thinx_mqtt_status_channel().c_str(), thx_connected_response.c_str()); TODO: send registration JSON for possible firmware updates
+    Serial.print("*TH: MQTT Subscribing device channel: ");
+    Serial.println(thinx_mqtt_channel());
 
-    return true;
+    if (mqtt_client->subscribe(thinx_mqtt_channel().c_str())) {
+      Serial.print("*TH: ");
+      Serial.print(thinx_mqtt_channel());
+      Serial.println(" successfully subscribed.");
+
+      // Publish status on status channel
+      mqtt_client->publish(
+        thinx_mqtt_status_channel().c_str(),
+        thx_connected_response.c_str()
+      );
+
+      // Publish registration on status channel to request possible update
+      mqtt_client->publish(
+        thinx_mqtt_status_channel().c_str(),
+        checkin_body().c_str()
+      );
+
+      return true;
   } else {
     Serial.println("*TH: MQTT Not connected.");
     return false;
@@ -516,14 +518,12 @@ bool THiNX::start_mqtt() {
 // `api_key_param` should have its value set when this gets called
 // ICACHE_FLASH_ATTR
 void THiNX::saveConfigCallback() {
-  Serial.println("Save config callback:");
+  Serial.println("Saveing configuration...");
   strcpy(thx_api_key, api_key_param->getValue());
   if (String(thx_api_key).length() > 0) {
     THiNX::thinx_api_key = String(thx_api_key);
     Serial.print("Saving thinx_api_key: ");
     Serial.println(thinx_api_key);
-    //Will be saved on checkin? NO! Will be lost on reset!
-    Serial.println("SAVE:2");
     saveDeviceInfo();
   }
 }
@@ -543,7 +543,6 @@ void THiNX::connect() { // should return status bool
   manager->setTimeout(10000);
   manager->autoConnect(autoconf_ssid,autoconf_pwd);
 
-  // attempt to connect to Wifi network:
   while ( !connected ) {
     status = manager->autoConnect(autoconf_ssid,autoconf_pwd);
     if (status == true) {
@@ -719,29 +718,26 @@ void THiNX::senddata(String body) {
 
 void THiNX::publish() {
   if (mqtt_client == NULL) return;
+  String channel = thinx_mqtt_status_channel();
   if (mqtt_client->connected()) {
-    Serial.print("*TH: MQTT still connected...");
+    Serial.println("*TH: MQTT connected...");
+    mqtt_client->publish(channel.c_str(), thx_connected_response.c_str());
+    mqtt_client->loop();
   } else {
-    String channel = thinx_mqtt_channel();
-    String message = thx_connected_response;
     Serial.println("*TH: MQTT not connected, reconnecting...");
     mqtt_result = start_mqtt();
     if (mqtt_result && mqtt_client->connected()) {
-      mqtt_client->publish(channel.c_str(), message.c_str());
+      mqtt_client->publish(channel.c_str(), thx_connected_response.c_str());
       Serial.println("*TH: MQTT reconnected, published default message.");
     } else {
-      Serial.println("*TH: Reconnect failed...");
+      Serial.println("*TH: MQTT Reconnect failed...");
     }
   }
 }
 
 void THiNX::loop() {
   Serial.println(".");
-  uint32_t memfree = system_get_free_heap_size();
-  Serial.print("PRE-PUBLISH memfree: ");
-  Serial.println(memfree);
+  // uint32_t memfree = system_get_free_heap_size(); Serial.print("PRE-PUBLISH memfree: "); Serial.println(memfree);
   publish();
-  Serial.print("POST-PUBLISH memfree: ");
-  memfree = system_get_free_heap_size();
-  Serial.println(memfree);
+  //Serial.print("POST-PUBLISH memfree: "); memfree = system_get_free_heap_size(); Serial.println(memfree);
 }

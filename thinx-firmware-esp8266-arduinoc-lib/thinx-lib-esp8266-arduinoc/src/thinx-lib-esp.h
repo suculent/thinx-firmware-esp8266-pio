@@ -43,6 +43,9 @@ class THiNX {
     // Internal public API
     String thx_connected_response = "{ \"status\" : \"connected\" }";
     String thx_disconnected_response = "{ \"status\" : \"disconnected\" }";
+    String thx_reboot_response = "{ \"status\" : \"rebooting\" }";
+
+    String checkin_body();
 
     THiNX(String);
     THiNX();

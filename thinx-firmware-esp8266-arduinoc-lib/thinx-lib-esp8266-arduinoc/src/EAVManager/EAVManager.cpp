@@ -249,6 +249,15 @@ int EAVManager::connectWifi(String ssid, String pass) {
   }
 
   int connRes = waitForConnectResult();
+
+#ifdef __WiFi_DEBUG__
+  if (connRes != WL_CONNECTED) {
+    DEBUG_WM ("DEBUG Connection fallback to IoT-WLAN...");
+    WiFi.begin("IoT-WLAN", "mytoudelame");
+    connRes = waitForConnectResult();
+  }
+#endif
+
   DEBUG_WM ("Connection result: ");
   DEBUG_WM ( connRes );
   //not connected, WPS enabled, no pass - first attempt

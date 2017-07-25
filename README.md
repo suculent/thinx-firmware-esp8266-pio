@@ -22,7 +22,22 @@ Provides example implementations in Arduino C, LUA and Micropython.
 - ESPlorer
 - ESPTool
 
-## Arduino C
+## Arduino C / Platform.io
+
+**RobotDyn MEGA WiFi Notes**
+
+1. To Upload firmware to ESP8266, set DIP switches to: 
+
+| 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+|:----|:----|:----|:----|:----|:----|:----|:----|
+| OFF | OFF | OFF | OFF | *ON* | *ON* | *ON* | - |
+
+2. To debug firmware on ESP8266, set DIP switches to: 
+
+| 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+|:----|:----|:----|:----|:----|:----|:----|:----|
+| OFF | OFF | OFF | OFF | *ON* | *ON* | OFF | - |
+
 
 ## Micropython
 
@@ -35,6 +50,7 @@ Requires following modules: wifi,websocket,uart,tmr,node,net,mqtt,http,file,cjso
 • Edit config.lua, set your WiFi SSID and password
 • Upload config.lua, thinx.lua and init.lua 
 • Reboot
+
 
 ### Forced Update
 

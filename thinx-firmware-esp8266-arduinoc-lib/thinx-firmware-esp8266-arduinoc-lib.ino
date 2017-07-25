@@ -10,14 +10,10 @@ THiNX* thx = NULL;
 
 void setup() {
   Serial.begin(115200);
+
+#ifdef __DEBUG__
   while (!Serial);
-
-  //Serial.printf("Sketch size: %u\n", ESP.getSketchSize());
-  //Serial.setDebugOutput(true);
-
-#ifdef __DEBUG_WIFI__
-  Serial.printf("Trying injected WiFi authentication from Settings.h");
-  WiFi.begin(ssid, pass);
+#else
   delay(500);
 #endif
 
