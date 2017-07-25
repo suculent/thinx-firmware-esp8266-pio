@@ -204,9 +204,9 @@ void THiNX::parse(String payload) {
 
     case UPDATE: {
 
-      //THiNX::parse_update(root);
       JsonObject& update = root["update"];
       Serial.println("TODO: Parse update payload...");
+      //THiNX::parse_update(root);
 
       } break;
 
@@ -254,7 +254,7 @@ void THiNX::parse(String payload) {
         String udid = registration["udid"];
         if ( udid.length() > 0 ) {
           Serial.println(String("assigning udid: ") + udid);
-          THiNX::thinx_udid = udid;
+          thinx_udid = udid;
         }
 
         delay(1);
@@ -712,6 +712,8 @@ void THiNX::senddata(String body) {
 
 void THiNX::publish() {
   if (mqtt_client == NULL) return;
+  if (thinx_udid.length() == 0) return;
+  restoreDeviceInfo(); // thinx_mqtt_status_channel() requires owner and uuid
   String channel = thinx_mqtt_status_channel();
   if (mqtt_client->connected()) {
     Serial.println("*TH: MQTT connected...");
