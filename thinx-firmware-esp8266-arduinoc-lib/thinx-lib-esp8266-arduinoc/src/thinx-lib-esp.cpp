@@ -350,7 +350,6 @@ void THiNX::checkin() {
     Serial.println("*TH: Cannot checkin while not connected, exiting.");
   } else {
     String body = checkin_body();
-    wrapper.printTo(body);
     senddata(body);
   }
 }
