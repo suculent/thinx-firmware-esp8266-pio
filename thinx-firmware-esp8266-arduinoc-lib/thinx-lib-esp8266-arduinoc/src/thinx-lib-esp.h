@@ -32,6 +32,7 @@ class THiNX {
       Unknown = 0,
       UPDATE = 1,		// Firmware Update Response Payload
       REGISTRATION = 2,		// Registration Response Payload
+      NOTIFICATION = 3, // Notification/Interaction Response Payload
       Reserved = 255,		// Reserved
     };
 
