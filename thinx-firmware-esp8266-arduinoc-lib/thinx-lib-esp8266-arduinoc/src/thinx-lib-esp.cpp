@@ -368,6 +368,26 @@ void THiNX::parse(String payload) {
           thinx_udid = udid;
         }
 
+        // Check current firmware based on commit id and store Updated state...
+        String commit = registration["commit"];
+        Serial.println(String("commit: ") + commit);
+
+        // Check current firmware based on version and store Updated state...
+        String version = registration["version"];
+        Serial.println(String("version: ") + version);
+
+        if ((commit == thinx_commit_id) && (version == thinx_version_id)) {
+          if (strlen(available_update_url) > 5) {
+            Serial.println("*TH: firmware has same commit_id as current and update availability is stored. Firmware has been installed.");
+            available_update_url = "";
+            saveDeviceInfo();
+            notify_on_successful_update();
+            return;
+          } else {
+            Serial.println("*TH: Info: firmware has same commit_id as current and no update is available.");
+          }
+        }
+
         delay(1);
 
         saveDeviceInfo();
