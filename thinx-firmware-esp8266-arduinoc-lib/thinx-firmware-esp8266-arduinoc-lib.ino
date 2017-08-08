@@ -1,5 +1,7 @@
 /* OTA enabled firmware for Wemos D1 (ESP 8266, Arduino) */
 
+// WARNING! Currently works only in PlatformIO, not Arduino IDE (due to linker issues)
+
 #include "Arduino.h"
 #include "Settings.h"
 #include "./thinx-lib-esp8266-arduinoc/src/thinx-lib-esp.h"
