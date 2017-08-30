@@ -17,27 +17,20 @@
 THiNX thx;
 
 void setup() {
-
   Serial.begin(115200);
-  Serial.setDebugOutput(true);
-
-#ifdef __DEBUG__
-  while (!Serial) {
-      //
-  };
-  delay(500);
-#endif
+  //Serial.setDebugOutput(true);
+  while (!Serial);
 
   // 4. Initialize
-  Serial.println("*TH: Initializing in 5 seconds...");
-  delay(5000);
+  Serial.println(apikey);
   thx = THiNX(apikey);
+  Serial.println("*TH: Starting loop...");
 }
 
 void loop()
 {
-  delay(10000);
-  // 5. Waits for WiFI, register, check MQTT, reconnect, update...  
+  // 5. Waits for WiFI, register, check MQTT, reconnect, update...
   thx.loop();
   Serial.printf("Free size: %u\n", ESP.getFreeSketchSpace());
+  delay(10000);
 }
