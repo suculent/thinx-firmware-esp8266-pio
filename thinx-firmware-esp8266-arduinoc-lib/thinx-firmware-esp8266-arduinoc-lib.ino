@@ -16,21 +16,44 @@
 // 3. Declare
 THiNX thx;
 
+bool spiffs_ok = false;
+
+bool once = false;
+
 void setup() {
   Serial.begin(115200);
-  //Serial.setDebugOutput(true);
   while (!Serial);
-
-  // 4. Initialize
-  Serial.println(apikey);
-  thx = THiNX(apikey);
-  Serial.println("*TH: Starting loop...");
+  Serial.setDebugOutput(true);
+  delay(1000);
+  if (!SPIFFS.begin()) {
+    Serial.println("Formatting."); Serial.flush();
+    SPIFFS.format();
+    if (!SPIFFS.begin()) {
+      Serial.println("Failed."); Serial.flush();
+      return;
+    } else {
+      Serial.println("Formatting Succeeded."); Serial.flush();
+    }
+  }
+  Serial.println("SPIFFS OK."); Serial.flush();
+  spiffs_ok = true;
+  wdt_disable();
+  //once = true;
+  //wdt_disable();
+  //thx = THiNX(apikey); // hangs in loop
+  //wdt_enable(5000);
 }
 
 void loop()
 {
-  // 5. Waits for WiFI, register, check MQTT, reconnect, update...
-  thx.loop();
-  Serial.printf("Free size: %u\n", ESP.getFreeSketchSpace());
-  delay(10000);
+    if (spiffs_ok) {
+      if (!once) {
+        once = true;
+
+        thx = THiNX(apikey); // hangs in loop
+
+      } else {
+        thx.loop();
+      }
+    }
 }
