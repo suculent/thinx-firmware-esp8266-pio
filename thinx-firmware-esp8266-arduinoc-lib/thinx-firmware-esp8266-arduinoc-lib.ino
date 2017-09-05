@@ -88,6 +88,6 @@ void loop()
         }
       }
     }
-    Serial.print("L#"); Serial.println(loop_counter);
+    Serial.println(millis());
     delay(100);
 }
