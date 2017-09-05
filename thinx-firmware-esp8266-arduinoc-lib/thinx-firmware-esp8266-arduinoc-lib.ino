@@ -25,8 +25,11 @@ void setup() {
   while (!Serial);
   Serial.setDebugOutput(true);
 
-  wdt_disable();
+  wdt_disable(); // causes wdt reset after 8 seconds!
+  wdt_enable(65535); // must be called from wdt_disable() state!
+
   delay(3000);
+
 
 #ifdef __USE_SPIFFS_
   // Equivalent of FSCK method, must happen before WiFi is enabled
