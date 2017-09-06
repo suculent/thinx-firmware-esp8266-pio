@@ -58,10 +58,14 @@ void setup() {
   // in case we don't use EAVManager or WiFiManager
 
 #ifdef __USE_WIFI_MANAGER__
-  // WiFi Manager will do this on its own...
-  WiFi.disconnect();
-  WiFi.mode(WIFI_AP);
-  WiFi.softAP("AP-THINX");
+
+  // WiFi Manager will start AP if it fails to connect:
+  // ETS_UART_INTR_DISABLE();
+  // WiFi.disconnect();
+  // ETS_UART_INTR_ENABLE();
+  // WiFi.mode(WIFI_AP);
+  // WiFi.softAP("AP-THINX");
+
 #else
 
   // Debugging station mode with configuration from Settings.h
