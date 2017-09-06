@@ -1,11 +1,7 @@
-#include <dummy.h>
-
-/* OTA enabled firmware for Wemos D1 (ESP 8266, Arduino) */
-
 #include "Arduino.h"
 #include "FS.h"
 
-#define __DEBUG__ // wait for serial port on boot
+// #define __DEBUG__
 
 // 1. Include the THiNXLib
 #include <THiNXLib.h>
@@ -16,7 +12,7 @@
 // 3. Declare
 THiNX thx;
 
-bool ready = false; // THiNX will not work unless SPIFFS is ready
+bool ready = false; // SPIFFS must be ready or not used at all
 bool once = false;
 
 void setup() {
@@ -25,11 +21,15 @@ void setup() {
   while (!Serial);
   Serial.setDebugOutput(true);
 
-  wdt_disable();
-  delay(3000);
+  wdt_disable(); // causes wdt reset if not disabled until 8 seconds
+  wdt_enable(65535); // must be called from wdt_disable()
 
-#ifdef __USE_SPIFFS_
-  // Equivalent of FSCK method, must happen before WiFi is enabled
+  delay(3000);
+  Serial.print("THiNXLib v");
+  Serial.println(VERSION);
+
+#ifdef __USE_SPIFFS__
+  // Equivalent of thx.fsck() method
   if (!SPIFFS.begin()) {
     Serial.println("Formatting."); Serial.flush();
     SPIFFS.format();
@@ -41,13 +41,17 @@ void setup() {
       Serial.println("Formatting Succeeded."); Serial.flush();
     }
   }
+#else
+  ready = true;
 #endif
 
   ready = true;
   Serial.println("*THiNX: SETUP >>>");
 
   // Force override WiFi before attempting to connect
+  // in case we don't use EAVManager or WiFiManager
 
+#ifndef __USE_WIFI_MANAGER__
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
   Serial.println("*INO: WiFi mode STA");
@@ -59,31 +63,25 @@ void setup() {
     Serial.println("*INO: connect wifi with config value ");
     WiFi.begin(ssid, pass);
   }
-
-  Serial.print("*INO: Connected to ");
-  Serial.println(ssid);
   delay(2000); // wait for DHCP
-  Serial.print("*INO: IP address: ");
-  Serial.println(WiFi.localIP());
-
-  Serial.setDebugOutput(true);
+#endif
 
 }
 
-unsigned long loop_counter = 0;
-
 void loop()
 {
-    loop_counter++;
     if (ready) {
       if (once) {
-        // Serial.println("*THiNX: LOOP >>>");
         thx.loop();
       } else {
-        once = true;
         Serial.println("*THiNX: LOOP ONE (INIT) >>>");
-        thx = THiNX(apikey); // hangs in loop
+        once = true;
+        thx = THiNX(apikey);
         if (WiFi.status() == WL_CONNECTED) {
+          Serial.print("*INO: Connected to ");
+          Serial.println(ssid);
+          Serial.print("*INO: IP address: ");
+          Serial.println(WiFi.localIP());
           thx.connected = true; // force checkin
         }
       }
