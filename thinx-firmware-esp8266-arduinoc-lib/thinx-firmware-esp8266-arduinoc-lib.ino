@@ -5,23 +5,6 @@
 #include <THiNXLib.h>
 
 // #define __DEBUG__
-#ifdef THINX_FIRMWARE_VERSION_SHORT
-#ifndef THX_REVISION
-#define THX_REVISION THINX_FIRMWARE_VERSION_SHORT
-#endif
-#else
-#ifndef THX_REVISION
-#define THX_REVISION String(0)
-#endif
-#endif
-
-#ifndef THX_CID
-#ifdef THINX_COMMIT_ID
-#define THX_CID THINX_COMMIT_ID
-#else
-#define THX_CID String("")
-#endif
-#endif
 
 // 2. Include your API Key from a file you don't store in repository (use .gitignore)
 #include "Settings.h"
@@ -38,11 +21,6 @@ void setup() {
   delay(3000);
 
   Serial.setDebugOutput(true);
-
-  Serial.print("\nTHiNXLib rev.");
-  Serial.print(String(THX_REVISION));
-  Serial.print(" (");
-  Serial.println(String(THX_CID)+")");
 
 #ifdef __USE_SPIFFS__
   // Equivalent of thx.fsck() method
@@ -110,6 +88,6 @@ void loop()
         thx.connected = true; // force checkin
       }
     }
-    Serial.println(String("#")+String(millis())+String("ms"));
+    //Serial.println(String("#")+String(millis())+String("ms")); Serial.flush();
     delay(100);
 }
