@@ -41,10 +41,10 @@ void setup() {
 
 #ifdef __USE_WIFI_MANAGER__
 
-  // WiFi Manager will start AP if it fails to connect:
-  // ETS_UART_INTR_DISABLE();
-  // WiFi.disconnect();
-  // ETS_UART_INTR_ENABLE();
+  //WiFi Manager will start AP if it fails to connect:
+  ETS_UART_INTR_DISABLE();
+  WiFi.disconnect();
+  ETS_UART_INTR_ENABLE();
   // WiFi.mode(WIFI_AP);
   // WiFi.softAP("AP-THINX");
 
