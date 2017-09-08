@@ -15,13 +15,20 @@
 #endif
 #endif
 
+#ifndef THX_CID
+#ifdef THINX_COMMIT_ID
+#define THX_CID THINX_COMMIT_ID
+#else
+#define THX_CID String("")
+#endif
+#endif
+
 // 2. Include your API Key from a file you don't store in repository (use .gitignore)
 #include "Settings.h"
 
 // 3. Declare
 THiNX thx;
 
-bool ready = false; // SPIFFS must be ready or not used at all
 bool once = false;
 
 void setup() {
@@ -32,8 +39,10 @@ void setup() {
 
   Serial.setDebugOutput(true);
 
-  Serial.print("\nTHiNXLib v");
-  Serial.println(String(THX_REVISION));
+  Serial.print("\nTHiNXLib rev.");
+  Serial.print(String(THX_REVISION));
+  Serial.print(" (");
+  Serial.println(String(THX_CID)+")");
 
 #ifdef __USE_SPIFFS__
   // Equivalent of thx.fsck() method
@@ -42,17 +51,12 @@ void setup() {
     SPIFFS.format();
     if (!SPIFFS.begin()) {
       Serial.println("Failed."); Serial.flush();
-      ready = false;
       return;
     } else {
       Serial.println("Formatting Succeeded."); Serial.flush();
     }
   }
-#else
-  ready = true;
 #endif
-
-  ready = true;
 
   // Force overrides WiFi before attempting to connect
   // in case we don't use EAVManager or WiFiManager
@@ -91,21 +95,19 @@ void finalizeCallback () {
 
 void loop()
 {
-    if (ready) {
-      if (once) {
-        thx.loop();
-      } else {
-        once = true;
-        thx = THiNX(apikey);
-        thx.setFinalizeCallback(finalizeCallback);
+    if (once) {
+      thx.loop();
+    } else {
+      once = true;
+      thx = THiNX(apikey);
+      thx.setFinalizeCallback(finalizeCallback);
 
-        if (WiFi.status() == WL_CONNECTED) {
-          Serial.print("*INO: Connected to ");
-          Serial.println(ssid);
-          Serial.print("*INO: IP address: ");
-          Serial.println(WiFi.localIP());
-          thx.connected = true; // force checkin
-        }
+      if (WiFi.status() == WL_CONNECTED) {
+        Serial.print("*INO: Connected to ");
+        Serial.println(ssid);
+        Serial.print("*INO: IP address: ");
+        Serial.println(WiFi.localIP());
+        thx.connected = true; // force checkin
       }
     }
     Serial.println(String("#")+String(millis())+String("ms"));
