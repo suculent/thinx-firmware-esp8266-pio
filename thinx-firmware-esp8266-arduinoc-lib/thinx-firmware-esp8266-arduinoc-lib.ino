@@ -36,58 +36,75 @@ void setup() {
   }
 #endif
 
-  // Force overrides WiFi before attempting to connect
-  // in case we don't use EAVManager or WiFiManager
-
-#ifdef __USE_WIFI_MANAGER__
-
-  //WiFi Manager will start AP if it fails to connect:
-  ETS_UART_INTR_DISABLE();
+#ifndef __USE_WIFI_MANAGER__
+  // Force-override WiFi before attempting to connect in case we don't use EAVManager
+  // or WiFiManager with configuration from Settings.h
   WiFi.disconnect();
-  ETS_UART_INTR_ENABLE();
-  // WiFi.mode(WIFI_AP);
-  // WiFi.softAP("AP-THINX");
-
-#else
-
-  // Debugging station mode with configuration from Settings.h
   WiFi.mode(WIFI_STA);
-  WiFi.disconnect();
   Serial.println("*INO: WiFi mode STA");
   WiFi.begin();
 
   if (WiFi.status() == WL_CONNECTED) {
-    Serial.println("*INO: Connected WiFi without credentials.");
+    Serial.println("*INO: Connected WiFi using saved credentials.");
+    thx.connected = true;
   } else {
     Serial.println("*INO: Connect WiFi with build-configuration...");
     WiFi.begin(ssid, pass);
   }
-  delay(2000); // wait for DHCP
-
 #endif
+
+  thx = THiNX(apikey); // will not start connecting before loop() called
+  delay(3000); // wait for DHCP, otherwise falls to AP mode
 }
 
-void finalizeCallback () {
-  Serial.println("*TH: Checkin finalized.");
+ICACHE_RAM_ATTR void finalizeCallback () {
+  Serial.println("*TH: Finalize callback called.");
 }
+
+unsigned long frame_counter = 0;
 
 void loop()
 {
-    if (once) {
-      thx.loop();
-    } else {
-      once = true;
-      thx = THiNX(apikey);
-      thx.setFinalizeCallback(finalizeCallback);
+  Serial.println("*INO: > ");
 
-      if (WiFi.status() == WL_CONNECTED) {
-        Serial.print("*INO: Connected to ");
-        Serial.println(ssid);
-        Serial.print("*INO: IP address: ");
-        Serial.println(WiFi.localIP());
-        thx.connected = true; // force checkin
+  if (once == true) {
+
+    Serial.println("*INO: LOOP > ");
+    thx.loop();
+    //Serial.println("*INO: LOOP < ");
+
+    frame_counter++;
+
+    // millis every 100th frame
+    if (frame_counter % 100000 == 0) {
+      Serial.println(millis());
+      frame_counter = 0;
+    }
+
+  } else {
+
+    Serial.println("*INO: ONCE > ");
+
+    if (WiFi.status() == WL_CONNECTED) {
+      Serial.print("*INO: Connected to ");
+      Serial.println(ssid);
+      Serial.print("*INO: IP address: ");
+      Serial.println(WiFi.localIP());
+    } else {
+      if (WiFi.getMode() == WIFI_STA) {
+        Serial.println("*INO: WIFI_STA on first loop...");
+      }
+      if (WiFi.getMode() == WIFI_AP) {
+        Serial.println("*INO: WIFI_AP on first loop...");
       }
     }
-    //Serial.println(String("#")+String(millis())+String("ms")); Serial.flush();
-    delay(100);
+
+    thx = THiNX(apikey);
+    once = true;
+    thx.setFinalizeCallback(finalizeCallback);
+    Serial.println("*INO: ONCE < ");
+  }
+
+  //Serial.println(millis()); Serial.flush();
+  //delay(1);
 }
