@@ -6,9 +6,6 @@
 
 // #define __DEBUG__
 
-// 2. Include your API Key from a file you don't store in repository (use .gitignore)
-#include "Settings.h"
-
 // 3. Declare
 THiNX thx;
 
@@ -18,8 +15,6 @@ void setup() {
 
   Serial.begin(115200);
   while (!Serial);
-  delay(3000);
-
   Serial.setDebugOutput(true);
 
 #ifdef __USE_SPIFFS__
@@ -39,25 +34,25 @@ void setup() {
 #ifndef __USE_WIFI_MANAGER__
   // Force-override WiFi before attempting to connect in case we don't use EAVManager
   // or WiFiManager with configuration from Settings.h
+  ETS_UART_INTR_DISABLE();
   WiFi.disconnect();
+  ETS_UART_INTR_ENABLE();
   WiFi.mode(WIFI_STA);
   Serial.println("*INO: WiFi mode STA");
-  WiFi.begin();
+  //WiFi.begin();
 
   if (WiFi.status() == WL_CONNECTED) {
     Serial.println("*INO: Connected WiFi using saved credentials.");
-    thx.connected = true;
   } else {
     Serial.println("*INO: Connect WiFi with build-configuration...");
-    WiFi.begin(ssid, pass);
+    WiFi.begin("THiNX-IoT+", "<enter-your-ssid-password>");
+    delay(2000); // wait for DHCP, otherwise falls to AP mode
   }
 #endif
-
-  thx = THiNX(apikey); // will not start connecting before loop() called
-  delay(3000); // wait for DHCP, otherwise falls to AP mode
 }
 
-ICACHE_RAM_ATTR void finalizeCallback () {
+// ICACHE_RAM_ATTR ?
+void finalizeCallback () {
   Serial.println("*TH: Finalize callback called.");
 }
 
@@ -65,46 +60,18 @@ unsigned long frame_counter = 0;
 
 void loop()
 {
-  Serial.println("*INO: > ");
-
+  //Serial.print("*INO: "); Serial.print(millis()); Serial.println(" > "); Serial.flush();
   if (once == true) {
-
-    Serial.println("*INO: LOOP > ");
     thx.loop();
-    //Serial.println("*INO: LOOP < ");
-
     frame_counter++;
-
     // millis every 100th frame
     if (frame_counter % 100000 == 0) {
       Serial.println(millis());
       frame_counter = 0;
     }
-
   } else {
-
-    Serial.println("*INO: ONCE > ");
-
-    if (WiFi.status() == WL_CONNECTED) {
-      Serial.print("*INO: Connected to ");
-      Serial.println(ssid);
-      Serial.print("*INO: IP address: ");
-      Serial.println(WiFi.localIP());
-    } else {
-      if (WiFi.getMode() == WIFI_STA) {
-        Serial.println("*INO: WIFI_STA on first loop...");
-      }
-      if (WiFi.getMode() == WIFI_AP) {
-        Serial.println("*INO: WIFI_AP on first loop...");
-      }
-    }
-
-    thx = THiNX(apikey);
+    thx = THiNX("71679ca646c63d234e957e37e4f4069bf4eed14afca4569a0c74abf503076732"); // API Key
     once = true;
-    thx.setFinalizeCallback(finalizeCallback);
-    Serial.println("*INO: ONCE < ");
   }
-
-  //Serial.println(millis()); Serial.flush();
-  //delay(1);
+  delay(10);
 }
