@@ -1,5 +1,4 @@
 #include "Arduino.h"
-#include "FS.h"
 
 // 1. Include the THiNXLib
 #include <THiNXLib.h>
@@ -9,28 +8,18 @@
 // 3. Declare
 THiNX thx;
 
-bool once = false;
+bool first_loop = true;
 
 void setup() {
 
   Serial.begin(115200);
-  while (!Serial);
+#ifdef __DEBUG__
+  while (!Serial); // wait for debug console connection; may block without Serial!
   Serial.setDebugOutput(true);
-
-#ifdef __USE_SPIFFS__
-  // Equivalent of thx.fsck() method
-  if (!SPIFFS.begin()) {
-    Serial.println("Formatting."); Serial.flush();
-    SPIFFS.format();
-    if (!SPIFFS.begin()) {
-      Serial.println("Failed."); Serial.flush();
-      return;
-    } else {
-      Serial.println("Formatting Succeeded."); Serial.flush();
-    }
-  }
+  delay(3000);
 #endif
 
+/*
 #ifndef __USE_WIFI_MANAGER__
   // Force-override WiFi before attempting to connect in case we don't use EAVManager
   // or WiFiManager with configuration from Settings.h
@@ -49,6 +38,8 @@ void setup() {
     delay(2000); // wait for DHCP, otherwise falls to AP mode
   }
 #endif
+*/
+
 }
 
 // ICACHE_RAM_ATTR ?
@@ -60,18 +51,18 @@ unsigned long frame_counter = 0;
 
 void loop()
 {
-  //Serial.print("*INO: "); Serial.print(millis()); Serial.println(" > "); Serial.flush();
-  if (once == true) {
+  if (first_loop) {
+    thx = THiNX("71679ca646c63d234e957e37e4f4069bf4eed14afca4569a0c74abf503076732"); // API Key
+    first_loop = false;
+  } else {
     thx.loop();
+    // Prints millis every 100.000th frame, resets counter
+    /*
     frame_counter++;
-    // millis every 100th frame
     if (frame_counter % 100000 == 0) {
       Serial.println(millis());
       frame_counter = 0;
-    }
-  } else {
-    thx = THiNX("71679ca646c63d234e957e37e4f4069bf4eed14afca4569a0c74abf503076732"); // API Key
-    once = true;
+    }*/
   }
-  delay(10);
+  delay(10); // remove in favour of own code
 }
