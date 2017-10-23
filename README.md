@@ -2,7 +2,7 @@
 
 Firmware for automatic device registration and OTA updates.
 
-Provides example implementations in Arduino C, LUA and Micropython.
+Provides example implementations in Arduino C, Lua and Micropython.
 
 * This is a work in progress.
 * 100% functionality is not guaranteed for all the time.
@@ -17,7 +17,7 @@ Provides example implementations in Arduino C, LUA and Micropython.
 - Open this folder using Atom with installed Platform.io or thinx-firmware-esp8266/thinx-firmware-esp8266.ino using Arduino IDE.
 - Run prerelease.sh to bake your commit ID into the Thinx.h file.
 
-### Micropython/LUA development
+### Micropython/Lua development
 
 - ESPlorer
 - ESPTool
@@ -26,13 +26,13 @@ Provides example implementations in Arduino C, LUA and Micropython.
 
 **RobotDyn MEGA WiFi Notes**
 
-1. To Upload firmware to ESP8266, set DIP switches to: 
+1. To Upload firmware to ESP8266, set DIP switches to:
 
 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
 |:----|:----|:----|:----|:----|:----|:----|:----|
 | OFF | OFF | OFF | OFF | *ON* | *ON* | *ON* | - |
 
-2. To debug firmware on ESP8266, set DIP switches to: 
+2. To debug firmware on ESP8266, set DIP switches to:
 
 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
 |:----|:----|:----|:----|:----|:----|:----|:----|
@@ -41,20 +41,20 @@ Provides example implementations in Arduino C, LUA and Micropython.
 
 ## Micropython
 
-## LUA
+## Lua
 
 Requires following modules: wifi,websocket,uart,tmr,node,net,mqtt,http,file,cjson
 
 ### Manual installation
 
 • Edit config.lua, set your WiFi SSID and password
-• Upload config.lua, thinx.lua and init.lua 
+• Upload config.lua, thinx.lua and init.lua
 • Reboot
 
 
 ### Forced Update
 
-• Not yet implemented, will be possible in future. 
+• Not yet implemented, will be possible in future.
 
 Tested with:
 
@@ -70,7 +70,7 @@ Tested with:
 
 1. Create account on the [http://rtm.thinx.cloud/](http://rtm.thinx.cloud/) site
 2. Create an API Key
-3. Clone [vanilla NodeMCU app repository](https://github.com/suculent/thinx-firmware-esp8266) 
+3. Clone [vanilla NodeMCU app repository](https://github.com/suculent/thinx-firmware-esp8266)
 4. Run the bash ./prerelease.sh to create Thinx.h file; you can edit this with your custom information but the file will be overwritten when building on the server
 5. You can store API Key in Thinx.h file in case your project is not stored in public repository.
 6. Build and upload the code to your device.
