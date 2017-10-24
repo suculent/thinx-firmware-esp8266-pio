@@ -11,11 +11,10 @@ THiNX thx;
 bool first_loop = true;
 
 void setup() {
-
   Serial.begin(115200);
 #ifdef __DEBUG__
   while (!Serial); // wait for debug console connection; may block without Serial!
-  Serial.setDebugOutput(true);
+  Serial.setDebugOutput(false);
   delay(3000);
 #endif
 
@@ -40,6 +39,11 @@ void setup() {
 #endif
 */
 
+  ETS_GPIO_INTR_DISABLE();
+  thx = THiNX("71679ca646c63d234e957e37e4f4069bf4eed14afca4569a0c74abf503076732"); // API Key
+  first_loop = false;
+  ETS_GPIO_INTR_ENABLE();
+
 }
 
 // ICACHE_RAM_ATTR ?
@@ -52,17 +56,23 @@ unsigned long frame_counter = 0;
 void loop()
 {
   if (first_loop) {
-    thx = THiNX("71679ca646c63d234e957e37e4f4069bf4eed14afca4569a0c74abf503076732"); // API Key
+    // thx = THiNX("71679ca646c63d234e957e37e4f4069bf4eed14afca4569a0c74abf503076732"); // API Key
     first_loop = false;
+    Serial.println(" ");
+    Serial.println("» THiNX successfully initialized.");
+    Serial.println(" ");
   } else {
     thx.loop();
+
     // Prints millis every 100.000th frame, resets counter
     /*
     frame_counter++;
-    if (frame_counter % 100000 == 0) {
+    if (frame_counter % 10000 == 0) {
       Serial.println(millis());
       frame_counter = 0;
-    }*/
+    } else {
+      delay(1);
+    } crash? */
   }
-  delay(10); // remove in favour of own code
+  delay(1);
 }
