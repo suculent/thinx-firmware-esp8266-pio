@@ -19,29 +19,17 @@ void setup() {
 #endif
 
 #ifndef __USE_WIFI_MANAGER__
-  // Force-override WiFi before attempting to connect in case we don't use EAVManager
-  // or WiFiManager with configuration from thinx.h
-  //ETS_UART_INTR_DISABLE();
-  //WiFi.disconnect();
-  //ETS_UART_INTR_ENABLE();
-  WiFi.mode(WIFI_STA);
-  Serial.println(F("*INO: WiFi mode STA"));
-  WiFi.begin();
-  if (WiFi.status() == WL_CONNECTED) {
-    Serial.println(F("*INO: Connected WiFi using saved credentials."));
-  } else {
-    Serial.println(F("*INO: Connect WiFi with build-configuration..."));
-    WiFi.begin("THiNX-IoT+", "<enter-your-ssid-password>"); // enter your WiFi credentials here
-    delay(2000); // wait for DHCP, otherwise falls back to AP mode
-  }
+  Serial.println(F("*INO: Connecting to WiFi using hardcoded configuration..."));
+  WiFi.disconnect();
+  WiFi.begin("THiNX-IoT+", "<enter-your-ssid-password>"); // enter your WiFi credentials here if those are not pre-build as THINX_ENV_SSID and THINX_ENV_PASS
+  delay(2000);
 #endif
 
   thx = THiNX("71679ca646c63d234e957e37e4f4069bf4eed14afca4569a0c74abf503076732"); // API Key
   first_loop = false;
 }
 
-// ICACHE_RAM_ATTR ?
-void finalizeCallback () {
+/* ICACHE_RAM_ATTR */ void finalizeCallback () {
   Serial.println("*TH: Finalize callback called.");
 }
 
@@ -56,17 +44,6 @@ void loop()
     Serial.println(" ");
   } else {
     thx.loop();
-
-    // Prints millis every 100.000th frame, resets counter
-
-    frame_counter++;
-    if (frame_counter % 10000 == 0) {
-      Serial.println(millis());
-      frame_counter = 0;
-    } else {
-      delay(1);
-    }
   }
   delay(1);
-
 }
