@@ -3,7 +3,8 @@
 // 1. Include the THiNXLib
 #include <THiNXLib.h>
 
-// #define __DEBUG__
+// 2. Find 'thinx.h' in THiNXLib and enter your THINX_OWNER identifier
+// from RTM Console > User Profile > Overview
 
 // 3. Declare
 THiNX thx;
@@ -25,7 +26,7 @@ void setup() {
   delay(2000);
 #endif
 
-  thx = THiNX("71679ca646c63d234e957e37e4f4069bf4eed14afca4569a0c74abf503076732"); // API Key
+  thx = THiNX("71679ca646c63d234e957e37e4f4069bf4eed14afca4569a0c74abf503076732"); // Enter API Key
   first_loop = false;
 }
 
