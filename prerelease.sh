@@ -15,7 +15,7 @@ THINX_MQTT_URL="${THINX_CLOUD_URL}" # mqtt://?
 REPO_NAME='thinx-firmware-esp8266'
 VERSION=$(git rev-list HEAD --count)
 REPO_VERSION="1.9.${VERSION}"
-BUILD_DATE=`date +%Y-%m-%d`
+BUILD_DATE=$(date +%Y-%m-%d)
 
 echo "//" > "$THINX_FILE"
 echo "// This is an auto-generated file, it will be re-written by THiNX on cloud build." >> "$THINX_FILE"
