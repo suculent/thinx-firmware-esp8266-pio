@@ -1,0 +1,13 @@
+engines:
+ rubocop:
+   enabled: false
+ duplication:
+   enabled: true
+ metrics:
+   enabled: true
+ coverage:
+   enabled: false
+exclude_paths:
+  - lib/thinx-lib-esp8266-arduino/src/ArduinoJson/**
+  - lib/thinx-lib-esp8266-arduino/src/PubSubClient/**
+  - lib/WiFiManager/**
