@@ -1,5 +1,7 @@
 # thinx-esp8266-firmware
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/391e02d431bc45b5a1c7a59e48b109a6)](https://www.codacy.com/app/suculent/thinx-firmware-esp8266-pio?utm_source=github.com&utm_medium=referral&utm_content=suculent/thinx-firmware-esp8266-pio&utm_campaign=badger)
+
 Firmware for automatic device registration and OTA updates.
 
 Provides example implementations in Arduino C, Lua and Micropython.
