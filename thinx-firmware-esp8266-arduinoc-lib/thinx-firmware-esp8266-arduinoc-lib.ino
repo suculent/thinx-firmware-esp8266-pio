@@ -9,11 +9,12 @@ void finalizeCallback () {
 }
 
 void setup() {
+
   Serial.begin(115200);
+
 #ifdef __DEBUG__
-  while (!Serial); // wait for debug console connection; may block without Serial!
-  Serial.setDebugOutput(false);
-  delay(3000);
+  while (!Serial); // wait for debug console connection
+  WiFi.begin("THiNX-IoT+", "<enter-your-ssid-password>");
 #endif
 
    // Enter API Key and Owner ID
