@@ -8,14 +8,14 @@ Provides example implementations in Arduino C, Lua and Micropython.
 
 * This is a work in progress.
 * 100% functionality is not guaranteed for all the time.
-* Contents of thinx-lib-esp is not working yet.
 
 # Requirements
 
 ### Arduino C development
 
 - Arduino IDE or Platform.io
-- Arduino libraries: ArduinoJSON, WiFiManager, ESP8266httpUpdate (to be replaced)
+- Included librearies: ArduinoJSON, WiFiManager
+- Arduino libraries: ESP8266httpUpdate (to be replaced)
 - Open this folder using Atom with installed Platform.io or thinx-firmware-esp8266/thinx-firmware-esp8266.ino using Arduino IDE.
 - Run prerelease.sh to bake your commit ID into the Thinx.h file.
 
