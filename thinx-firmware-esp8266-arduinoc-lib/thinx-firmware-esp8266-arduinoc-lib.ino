@@ -6,6 +6,7 @@ THiNX thx;
 /* Called after library gets connected and registered */
 void finalizeCallback () {
   Serial.println("*INO: Finalize callback called.");
+  ESP.deepSleep(5e9);
 }
 
 void setup() {
