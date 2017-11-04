@@ -2,9 +2,9 @@
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/391e02d431bc45b5a1c7a59e48b109a6)](https://www.codacy.com/app/suculent/thinx-firmware-esp8266-pio?utm_source=github.com&utm_medium=referral&utm_content=suculent/thinx-firmware-esp8266-pio&utm_campaign=badger)
 
-Firmware for automatic device registration and OTA updates.
+Arduino firmware for THiNX providing device management and automatic (webhook-based) OTA (over-the-air) firmware builds and updates.
 
-Provides example implementations for PlatformIO.
+Provides example implementations for ESP8266 with PlatformIO.
 
 * This is a work in progress.
 * 100% functionality is not guaranteed for all the time.
@@ -15,6 +15,12 @@ Provides example implementations for PlatformIO.
 
 - Platform.io
 - Open this folder using Atom with installed Platform.io
+
+# Installation
+
+### Arduino IDE
+
+Search for `THiNXLib` in Arduino Library Manager and install all other dependencies... or you can just copy then from the `lib` folder if you prefer tested versions before the latest.
 
 ### PlatformIO Library Manager
 
@@ -39,8 +45,10 @@ Note: In case you'll build/upload your project (e.g. the library) using thinx.cl
 
 You provide callback receiving String using `setPushConfigCallback()` method. Whenever device receives MQTT update with `configuration` key, it will provide all environment variables to you.
 
-> This used also for the WiFi Migration procedure.
+> This may be also used for the WiFi Migration procedure.
 
 # Security
 
-Because all the traffic from ESP8266 is usually HTTP-only and not all devices can handle SSL, you can install our side-kick project [THiNX-Connect](https://github.com/suculent/thinx-connect). Install this proxy to your home environment and it will encrypt HTTP traffic to HTTPS and will tunnell your device communication directly to thinx.cloud.
+Because all the traffic from ESP8266 is usually HTTP-only and not all devices can handle SSL, you can install our side-kick project [THiNX-Connect](https://github.com/suculent/thinx-connect). Install this proxy to your home environment and it will encrypt HTTP traffic to HTTPS and will tunnel your device communication directly to thinx.cloud.
+
+Library queries the `thinx` MDNS service on `_tcp` protocol on local network upon connection. When such service is available, library will forward all HTTP requests through this service. 
