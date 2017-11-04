@@ -32,7 +32,6 @@ void pushConfigCallback (String config) {
       long timeout = millis() + 20000;
       Serial.println("Attempting WiFi migration...");
       while (WiFi.status() != WL_CONNECTED) {
-        yield();
         if (millis() > timeout) break;
       }
       if (WiFi.status() != WL_CONNECTED) {
