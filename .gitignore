@@ -35,3 +35,6 @@
 .clang_complete
 .gcc-flags.json
 firmware.elf
+
+**/.clang_complete
+**/.gcc-flags.json
