@@ -1,3 +1,3 @@
-[submodule "lib/thinx-lib-esp8266-arduino"]
-	path = lib/thinx-lib-esp8266-arduino
-	url = git@github.com:suculent/thinx-lib-esp8266-arduino.git
+[submodule "lib/thinx-firmware-esp8266"]
+	path = lib/thinx-firmware-esp8266
+	url = git@github.com:suculent/thinx-firmware-esp8266.git
