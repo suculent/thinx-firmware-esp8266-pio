@@ -35,7 +35,7 @@ void pushConfigCallback (String config) {
         if (millis() > timeout) break;
       }
       if (WiFi.status() != WL_CONNECTED) {
-        Serial.println("WiFi migration failed."); // TODO: Notify using publish() to device status channel
+        Serial.println("WiFi migration failed."); 
       } else {
         Serial.println("WiFi migration successful."); // TODO: Notify using publish() to device status channel
       }
