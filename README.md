@@ -41,6 +41,10 @@ Library Review in progress at: `http://images.thinx.cloud/platformio/library.jso
 
 Note: In case you'll build/upload your project (e.g. the library) using thinx.cloud, API key will be injected automatically by THiNX CI and you should not need to set it up anymore.
 
+# More Examples
+
+[THiNX Device API Wiki](https://github.com/suculent/thinx-device-api/wiki)
+
 # Environment Variable Support
 
 You provide callback receiving String using `setPushConfigCallback()` method. Whenever device receives MQTT update with `configuration` key, it will provide all environment variables to you.
