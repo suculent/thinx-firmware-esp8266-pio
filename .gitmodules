@@ -1,12 +1,12 @@
-[submodule "lib/thinx-firmware-esp8266"]
-	path = lib/thinx-firmware-esp8266
-	url = git@github.com:suculent/thinx-firmware-esp8266.git
-[submodule "lib/ArduinoJSON"]
-	path = lib/ArduinoJSON
-	url = https://github.com/bblanchon/ArduinoJson.git
+[submodule "lib/THiNX32"]
+	path = lib/THiNX32
+	url = git@github.com:suculent/thinx-firmware-esp32.git
 [submodule "lib/PubSubClient"]
 	path = lib/PubSubClient
 	url = https://github.com/Imroy/pubsubclient.git
 [submodule "lib/WiFiManager"]
 	path = lib/WiFiManager
 	url = https://github.com/tzapu/WiFiManager.git
+[submodule "lib/ArduinoJSON"]
+	path = lib/ArduinoJSON
+	url = https://github.com/bblanchon/ArduinoJson.git
