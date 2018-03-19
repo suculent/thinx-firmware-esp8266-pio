@@ -1,3 +1,9 @@
 [submodule "lib/THiNX32"]
 	path = lib/THiNX32
 	url = git@github.com:suculent/thinx-firmware-esp32.git
+[submodule "lib/PubSubClient"]
+	path = lib/PubSubClient
+	url = https://github.com/Imroy/pubsubclient.git
+[submodule "lib/ArduinoJson"]
+	path = lib/ArduinoJson
+	url = https://github.com/bblanchon/ArduinoJson.git
