@@ -456,8 +456,6 @@ void THiNX::senddata(String body) {
 
 void THiNX::parse(String payload) {
 
-  // TODO: Should parse response only for this device
-
   payload_type ptype = Unknown;
 
   int start_index = 0;
@@ -467,6 +465,14 @@ void THiNX::parse(String payload) {
   int not_index = payload.indexOf("{\"notification\"");
   int cfg_index = payload.indexOf("{\"configuration\"");
   int undefined_owner = payload.indexOf("old_protocol_owner:-undefined-");
+  int err_dev_not_found = payload.indexOf("status_update_device_not_found");
+
+    if ( err_dev_not_found != -1 ) {
+        Serial.println(F("THiNX Error: Device not found. Contact support"));
+        Serial.println(payload);
+        finalize();
+        return;
+    }
 
   if (upd_index > start_index) {
     start_index = upd_index;
@@ -499,7 +505,7 @@ void THiNX::parse(String payload) {
   String body = payload.substring(start_index, endIndex);
 
 #ifdef __DEBUG__
-  Serial.print(F("*TH: Parsing response:\n'"));
+  Serial.print(F("*TH: Parsing response.\n'..."));
   Serial.print(body);
   Serial.println("'");
 #endif
@@ -509,6 +515,7 @@ void THiNX::parse(String payload) {
 
   if ( !root.success() ) {
     Serial.println(F("Failed parsing root node."));
+      finalize();
     return;
   }
 
@@ -524,6 +531,7 @@ void THiNX::parse(String payload) {
       Serial.println(String("mac: ") + mac);
 
       if (!mac.equals(this_mac)) {
+        // TODO: Should parse response only for this device
         Serial.println(F("*TH: Firmware is dedicated to device with different MAC. Skipping update."));
         Serial.print("Local MAC: "); Serial.println(this_mac);
         Serial.print("Remote MAC: "); Serial.println(mac);
@@ -615,6 +623,8 @@ void THiNX::parse(String payload) {
 
     case NOTIFICATION: {
 
+      // TODO: Should parse response only for this device
+
       // Currently, this is used for update only, can be extended with request_category or similar.
       JsonObject& notification = root["notification"];
 
@@ -652,6 +662,8 @@ void THiNX::parse(String payload) {
 
     case REGISTRATION: {
 
+      // TODO: Should parse response only for this device
+
       JsonObject& registration = root["registration"];
 
       if ( !registration.success() ) {
@@ -688,7 +700,6 @@ void THiNX::parse(String payload) {
         }
 
         if (registration.containsKey(F("timestamp"))) {
-          Serial.println("Updating time...");
           last_checkin_timestamp = (long)registration[F("timestamp")];
           last_checkin_millis = millis();
         }
@@ -705,11 +716,10 @@ void THiNX::parse(String payload) {
         save_device_info();
 
         String mac = registration["mac"];
-        Serial.println(String("*TH: Update for MAC: ") + mac);
-        // TODO: must be current or 'ANY'
 
+        // TODO: Should parse response only for this device
+        Serial.println(String("*TH: Update for MAC: ") + mac);
         String commit = registration["commit"];
-        // Serial.println(String("commit: ") + commit);
 
         // should not be same except for forced update
         if (commit == thinx_commit_id) {
@@ -972,56 +982,58 @@ bool THiNX::start_mqtt() {
   bool willRetain = false;
 
   if (mqtt_client->connect(MQTT::Connect(id)
-  .set_will(willTopic.c_str(), F("{ \"status\" : \"disconnected\" }"))
-  .set_auth(user, pass)
-  .set_keepalive(60)
-)) {
+    .set_will(willTopic.c_str(), F("{ \"status\" : \"disconnected\" }"))
+    .set_auth(user, pass)
+    .set_keepalive(60)
+  )) {
 
-  mqtt_connected = true;
-  performed_mqtt_checkin = true;
+    Serial.println(F("*TH: MQTT connected..."));
 
-  mqtt_client->set_callback([this](const MQTT::Publish &pub){
+    mqtt_connected = true;
+    performed_mqtt_checkin = true;
 
-    // Never tested...
-    if (pub.has_stream()) {
+    mqtt_client->set_callback([this](const MQTT::Publish &pub){
 
-      Serial.println(F("*TH: MQTT Type: Stream..."));
-      uint32_t startTime = millis();
-      uint32_t size = pub.payload_len();
+      // Never tested...
+      if (pub.has_stream()) {
 
-      if ( ESP.updateSketch(*pub.payload_stream(), size, true, false) ) {
-        // Notify on reboot for update
-        mqtt_client->publish(
-          mqtt_device_status_channel,
-          "{ \"status\" : \"rebooting\" }"
-        );
-        mqtt_client->disconnect();
-        pub.payload_stream()->stop();
-        Serial.printf("Update Success: %u\nRebooting...\n", millis() - startTime);
-        ESP.restart();
-      } else {
-        Serial.println(F("*TH: ESP MQTT Stream update failed..."));
-        mqtt_client->publish(
-          mqtt_device_status_channel,
-          "{ \"status\" : \"mqtt_update_failed\" }"
-        );
-      }
+        Serial.println(F("*TH: MQTT Type: Stream..."));
+        uint32_t startTime = millis();
+        uint32_t size = pub.payload_len();
 
-    } else {
-      parse(pub.payload_string());
-        if (_mqtt_callback) {
-            _mqtt_callback(pub.payload_string());
+        if ( ESP.updateSketch(*pub.payload_stream(), size, true, false) ) {
+          // Notify on reboot for update
+          mqtt_client->publish(
+            mqtt_device_status_channel,
+            "{ \"status\" : \"rebooting\" }"
+          );
+          mqtt_client->disconnect();
+          pub.payload_stream()->stop();
+          Serial.printf("Update Success: %u\nRebooting...\n", millis() - startTime);
+          ESP.restart();
+        } else {
+          Serial.println(F("*TH: ESP MQTT Stream update failed..."));
+          mqtt_client->publish(
+            mqtt_device_status_channel,
+            "{ \"status\" : \"mqtt_update_failed\" }"
+          );
         }
-    }
-  }); // end-of-callback
 
-  return true;
+      } else {
+        parse(pub.payload_string());
+          if (_mqtt_callback) {
+              _mqtt_callback(pub.payload_string());
+          }
+      }
+    }); // end-of-callback
 
-} else {
+    return true;
 
-  Serial.println(F("*TH: MQTT Not connected."));
-  return false;
-}
+  } else {
+
+    Serial.println(F("*TH: MQTT Not connected."));
+    return false;
+  }
 }
 
 /*
@@ -1421,7 +1433,7 @@ void THiNX::loop() {
           mqtt_device_status_channel,
           F("{ \"status\" : \"connected\" }")
         );
-        mqtt_client->loop();
+        //mqtt_client->loop();
         thinx_phase = FINALIZE;
       }
     }
@@ -1433,6 +1445,8 @@ void THiNX::loop() {
       mqtt_client->loop();
       if (mqtt_result == true) {
         thinx_phase = CHECKIN_MQTT;
+      } else {
+        thinx_phase = FINALIZE; // skip on failure to finalize
       }
     } else {
       thinx_phase = FINALIZE;
@@ -1471,8 +1485,9 @@ void THiNX::loop() {
     }
   }
 
-  if ( millis() > reboot_interval ) {
-    setStatus("Rebooting...");
+  if ( (reboot_interval != 0) && (millis() > reboot_interval) ) {
+    Serial.println("Rebooting on timeout."); Serial.flush();
+    setStatus("Rebooting on reboot timeout...");
     ESP.restart();
   }
 

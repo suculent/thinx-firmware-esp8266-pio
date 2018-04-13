@@ -9,14 +9,14 @@
 
 // Provides placeholder for THINX_FIRMWARE_VERSION_SHORT
 #ifndef VERSION
-#define VERSION "2.1.172"
+#define VERSION "2.1.173"
 #endif
 
 #ifndef THX_REVISION
 #ifdef THINX_FIRMWARE_VERSION_SHORT
 #define THX_REVISION THINX_FIRMWARE_VERSION_SHORT
 #else
-#define THX_REVISION "170"
+#define THX_REVISION "173"
 #endif
 #endif
 
@@ -206,8 +206,8 @@ private:
     long last_checkin_millis;
     long last_checkin_timestamp;
 
-    long reboot_timeout;          // next timeout millis()
-    long reboot_interval = 86400 * 1000;  // can be set externaly, defaults to 24h
+    long reboot_timeout = 86400 * 1000;     // defaults to 24h
+    long reboot_interval;                   // can be set externaly, defaults to 24h
 
     // MQTT
     bool start_mqtt();                      // connect to broker and subscribe
