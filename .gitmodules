@@ -1,12 +1,9 @@
-[submodule "lib/PubSubClient"]
-	path = lib/PubSubClient
-	url = https://github.com/Imroy/pubsubclient.git
-[submodule "lib/WiFiManager"]
-	path = lib/WiFiManager
-	url = https://github.com/tzapu/WiFiManager.git
 [submodule "lib/ArduinoJSON"]
 	path = lib/ArduinoJSON
 	url = https://github.com/bblanchon/ArduinoJson.git
-[submodule "lib/ArduinoJson"]
-	path = lib/ArduinoJson
-	url = git@github.com:bblanchon/ArduinoJson.git
+[submodule "lib/WiFiManager"]
+	path = lib/WiFiManager
+	url = https://github.com/tzapu/WiFiManager.git
+[submodule "lib/PubSubClient"]
+	path = lib/PubSubClient
+	url = https://github.com/Imroy/pubsubclient.git

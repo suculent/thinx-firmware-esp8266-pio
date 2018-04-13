@@ -1,10 +1,10 @@
-# thinx-esp32-firmware-pio
+# thinx-esp8266-firmware-pio
 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/391e02d431bc45b5a1c7a59e48b109a6)](https://www.codacy.com/app/suculent/thinx-firmware-esp32-pio?utm_source=github.com&utm_medium=referral&utm_content=suculent/thinx-firmware-esp8266-pio&utm_campaign=badger)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/391e02d431bc45b5a1c7a59e48b109a6)](https://www.codacy.com/app/suculent/thinx-firmware-esp8266-pio?utm_source=github.com&utm_medium=referral&utm_content=suculent/thinx-firmware-esp8266-pio&utm_campaign=badger)
 
 Arduino firmware for THiNX providing device management and automatic (webhook-based) OTA (over-the-air) firmware builds and updates.
 
-Provides example implementations for ESP32 with PlatformIO.
+Provides example implementations for ESP8266 with PlatformIO.
 
 * This is a work in progress.
 * 100% functionality is not guaranteed for all the time.
@@ -30,7 +30,7 @@ Library Review in progress at: `http://images.thinx.cloud/platformio/library.jso
 
 1. Create account on the [http://rtm.thinx.cloud/](http://rtm.thinx.cloud/) site
 2. Create an API Key
-3. Clone [ESP32 app repository](https://github.com/suculent/thinx-firmware-esp32-pio)
+3. Clone [ESP8266 app repository](https://github.com/suculent/thinx-firmware-esp8266-pio)
 4. You can store Owner ID and API Key in Thinx.h file in case your project is NOT stored in public repository. Otherwise insert API key using WiFiManager AP portal and owner will be fetched from backend.
 5. Build and upload the code to your device.
 6. After restart, connect with some device to WiFi AP 'AP-THiNX' and copy-paste the API Key and Owner ID, if you haven't hardcoded it in step 4
