@@ -7,6 +7,6 @@
 [submodule "lib/ArduinoJSON"]
 	path = lib/ArduinoJSON
 	url = https://github.com/bblanchon/ArduinoJson.git
-[submodule "lib/ArduinoJson"]
-	path = lib/ArduinoJson
-	url = git@github.com:bblanchon/ArduinoJson.git
+[submodule "lib/thinx-lib-esp8266-arduinoc"]
+	path = lib/thinx-lib-esp8266-arduinoc
+	url = https://github.com/suculent/thinx-lib-esp8266-arduinoc.git
