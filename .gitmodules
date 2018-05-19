@@ -1,6 +1,0 @@
-[submodule "lib/WiFiManager"]
-	path = lib/WiFiManager
-	url = https://github.com/tzapu/WiFiManager.git
-[submodule "lib/PubSubClient"]
-	path = lib/PubSubClient
-	url = https://github.com/Imroy/pubsubclient.git
