@@ -1,2 +1,5 @@
  
 
+[submodule "lib/pubsubclient"]
+	path = lib/pubsubclient
+	url = https://github.com/Imroy/pubsubclient.git
