@@ -1,0 +1,22 @@
+# for Platformio-based ESP8266 CI builds
+
+platformio:
+  environment: esp8266-ci
+
+# arduino:
+#   platform: espressif
+#   arch: esp8266
+#   board: d1_mini_pro
+#   flash_ld: eagle.flash.4m1m.ld
+#   f_cpu: 80000000L
+#   flash_size: 16M
+
+# Those lines MUST be masked out in ENV prints!
+devsec:
+  ckey: <enter-your-encryption-key>
+  ssid: THiNX-IoT
+  pass: <enter-your-ssid-password>
+
+# Per-device env-var injection
+environment:
+  target: src/environment.h

@@ -6,9 +6,6 @@
 [submodule "lib/WiFiManager"]
 	path = lib/WiFiManager
 	url = https://github.com/tzapu/WiFiManager
-[submodule "lib/ArduinoJson"]
-	path = lib/ArduinoJson
-	url = https://github.com/bblanchon/ArduinoJson.git
 [submodule "lib/thinx-firmware-esp8266"]
 	path = lib/thinx-firmware-esp8266
 	url = https://github.com/suculent/thinx-firmware-esp8266
