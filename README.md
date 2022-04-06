@@ -1,5 +1,8 @@
 # thinx-esp8266-firmware-pio
 
+Firmware for automatic device registration and OTA updates.
+Can be assembled and managed by [Remote Things Management](https://rtm.thinx.cloud) based on [THiNX OpenSource IoT platform](https://thinx.cloud).
+
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/391e02d431bc45b5a1c7a59e48b109a6)](https://www.codacy.com/app/suculent/thinx-firmware-esp8266-pio?utm_source=github.com&utm_medium=referral&utm_content=suculent/thinx-firmware-esp8266-pio&utm_campaign=badger)
 
 Arduino firmware for THiNX providing device management and automatic (webhook-based) OTA (over-the-air) firmware builds and updates.
@@ -28,7 +31,7 @@ Library Review in progress at: `http://images.thinx.cloud/platformio/library.jso
 
 # Usage
 
-1. Create account on the [http://rtm.thinx.cloud/](http://rtm.thinx.cloud/) site
+1. Create account on the RTM [https://rtm.thinx.cloud/](https://rtm.thinx.cloud/) site
 2. Create an API Key
 3. Clone [ESP8266 app repository](https://github.com/suculent/thinx-firmware-esp8266-pio)
 4. You can store Owner ID and API Key in Thinx.h file in case your project is NOT stored in public repository. Otherwise insert API key using WiFiManager AP portal and owner will be fetched from backend.
