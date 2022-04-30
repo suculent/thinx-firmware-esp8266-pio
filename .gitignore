@@ -38,3 +38,5 @@ firmware.elf
 
 **/.clang_complete
 **/.gcc-flags.json
+
+.pio

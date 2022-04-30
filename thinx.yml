@@ -1,7 +1,7 @@
 # for Platformio-based ESP8266 CI builds
 
 platformio:
-  environment: esp8266-ci
+  environment: d1_mini
 
 # arduino:
 #   platform: espressif
