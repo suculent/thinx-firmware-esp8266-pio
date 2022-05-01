@@ -6,6 +6,10 @@ An Arduino/ESP8266 library to wrap client for OTA updates and RTM (Remote Things
 
 # What's New
 
+### 2022-05-01: 3.0.270
+
+* Compatibility with Arduino Core 3.0.2
+
 ### 2019-12-10: 2.8.238
 
 * Compatibility with Arduino Core 2.6.2
