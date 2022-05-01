@@ -262,7 +262,7 @@ void THiNX::connect() {
   }
 #endif
 
-  if (wifi_conection_timeout > 0 && (millis() > wifi_conection_timeout)) {
+  if (wifi_connection_timeout > 0 && (millis() > wifi_connection_timeout)) {
     wifi_connection_in_progress = false;
   }
 
@@ -277,9 +277,9 @@ void THiNX::connect() {
       } else {
         if (strlen(THINX_ENV_SSID) > 2) {
           WiFi.begin(THINX_ENV_SSID, THINX_ENV_PASS);
-          wifi_conection_timeout = millis() + 30000; // TODO: NICE-TO-HAVE: implement linear or exponential backoff
+          wifi_connection_timeout = millis() + 30000; // TODO: NICE-TO-HAVE: implement linear or exponential backoff
         }
-        wifi_connection_in_progress = true; // prevents re-entering connect_wifi(); reset after wifi_conection_timeout
+        wifi_connection_in_progress = true; // prevents re-entering connect_wifi(); reset after wifi_connection_timeout
       }
     }
   }

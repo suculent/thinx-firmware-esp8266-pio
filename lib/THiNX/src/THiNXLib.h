@@ -140,7 +140,7 @@ public:
     void setLastWill(String nextWill);        // disconnect MQTT and reconnect with different lastWill than default
 
     bool wifi_connection_in_progress;
-    unsigned long wifi_conection_timeout = NULL;
+    unsigned long wifi_connection_timeout = 0;
 
     // MQTT Support
 
